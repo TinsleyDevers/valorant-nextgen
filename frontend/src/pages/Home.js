@@ -1,8 +1,8 @@
+//Home.js
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
 
-// A small stat display box to reduce repeated code
 function StatBox({ label, value, color = "teal" }) {
   const colorClass =
     {
@@ -21,7 +21,6 @@ function StatBox({ label, value, color = "teal" }) {
   );
 }
 
-// A table for "myTeam" or "enemyTeam"
 function TeamTable({ title, data }) {
   return (
     <div className="bg-gray-700 p-4 rounded mt-4">
@@ -90,14 +89,14 @@ export default function Home() {
 
   const modalRef = useRef(null);
 
-  // For the production key demo
+  // riot personal key stuff
   const [riotUsername, setRiotUsername] = useState("ZambieD");
   const [riotTagline, setRiotTagline] = useState("whale");
   const [riotAccountData, setRiotAccountData] = useState(null);
   const [riotError, setRiotError] = useState("");
   const [loadingAccount, setLoadingAccount] = useState(false);
 
-  // Minimaps
+  // minimaps
   const minimaps = {
     Ascent:
       "https://static.wikia.nocookie.net/valorant/images/0/04/Ascent_minimap.png",
@@ -112,8 +111,8 @@ export default function Home() {
     (async () => {
       try {
         const [resM, resLB] = await Promise.all([
-          axios.get("http://localhost:5000/api/matches"),
-          axios.get("http://localhost:5000/api/leaderboard"),
+          axios.get("https://valorant-nextgen.onrender.com/api/matches"),
+          axios.get("https://valorant-nextgen.onrender.com/api/leaderboard"),
         ]);
         setMatches(resM.data.data);
         setLeaderboard(resLB.data.data);
@@ -131,7 +130,7 @@ export default function Home() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Animations
+  // anims
   const leagueButtonVariant = {
     rest: { scale: 1, opacity: 0.8 },
     hover: { scale: 1.05, opacity: 1 },
@@ -162,14 +161,14 @@ export default function Home() {
     setShowRankedStats(false);
   };
 
-  // Filter by league
+  // leagues
   const filteredMatches = selectedLeague
     ? matches.filter(
         (m) => m.tournament.toLowerCase() === selectedLeague.toLowerCase()
       )
     : [];
 
-  // Ranking logic
+  // rank logic
   const getPlayerRank = (n, t) => {
     const lb = leaderboard.find((p) => p.name === n && p.tagline === t);
     return lb ? lb.rank : null;
@@ -180,11 +179,11 @@ export default function Home() {
       rankStr.toLowerCase().includes("radiant"));
 
   const handlePlayerClick = async (matchId, player) => {
-    closeModal(); // ensure we reset from old stats
+    closeModal();
     setSelectedPlayer(player);
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/match/${matchId}/player-stats`,
+        `https://valorant-nextgen.onrender.com/api/match/${matchId}/player-stats`,
         {
           params: { name: player.name, tagline: player.tagline },
         }
@@ -198,9 +197,12 @@ export default function Home() {
   const handleToggleRankedStats = async (n, t) => {
     if (!showRankedStats) {
       try {
-        const r = await axios.get("http://localhost:5000/api/ranked-stats", {
-          params: { name: n, tagline: t },
-        });
+        const r = await axios.get(
+          "https://valorant-nextgen.onrender.com/api/ranked-stats",
+          {
+            params: { name: n, tagline: t },
+          }
+        );
         setSelectedRankedStats(r.data.rankedStats);
       } catch {}
       setShowRankedStats(true);
@@ -210,16 +212,19 @@ export default function Home() {
     }
   };
 
-  // Production key usage
+  // production key example usages
   const handleRiotLookup = async (e) => {
     e.preventDefault();
     setRiotError("");
     setRiotAccountData(null);
     setLoadingAccount(true);
     try {
-      const r = await axios.get("http://localhost:5000/api/account", {
-        params: { username: riotUsername, tagline: riotTagline },
-      });
+      const r = await axios.get(
+        "https://valorant-nextgen.onrender.com/api/account",
+        {
+          params: { username: riotUsername, tagline: riotTagline },
+        }
+      );
       setRiotAccountData(r.data.data);
     } catch (err) {
       console.error(err);
@@ -228,7 +233,6 @@ export default function Home() {
     setLoadingAccount(false);
   };
 
-  // Render
   return (
     <>
       <LoadingOverlay isLoading={isLoading} />
@@ -293,15 +297,12 @@ export default function Home() {
                     className="relative rounded-lg overflow-hidden shadow-lg cursor-pointer"
                     onClick={() => toggleMatchExpand(match.matchId)}
                   >
-                    {/* High-Quality Background with Blur */}
                     <div className="relative">
                       <div
                         className="absolute inset-0 bg-cover bg-center bg-no-repeat filter blur-sm"
                         style={{ backgroundImage: `url(${match.mapImage})` }}
                       ></div>
                       <div className="absolute inset-0 bg-black bg-opacity-45"></div>
-
-                      {/* Foreground Content */}
                       <div className="relative p-4 flex justify-between items-center">
                         <div>
                           <h2 className="text-xl font-bold text-white">
@@ -352,7 +353,7 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Expanded Match Details */}
+                    {/* expanded match details */}
                     <AnimatePresence>
                       {isExpanded && (
                         <motion.div
@@ -433,7 +434,7 @@ export default function Home() {
             </p>
           )}
 
-          {/* Production Key Demo */}
+          {/* personal key demo */}
           <div className="mt-10">
             <h2 className="text-2xl font-semibold mb-2">
               Riot Production Key Demo
@@ -510,7 +511,7 @@ export default function Home() {
                 ✕
               </button>
 
-              {/* Victory/Defeat Section */}
+              {/* victory/defeat section */}
               <div className="text-center mb-4">
                 <p
                   className={`text-2xl font-bold ${

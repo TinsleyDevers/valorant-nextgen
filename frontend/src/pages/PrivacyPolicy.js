@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom"; // <-- ADD THIS
+import { Link } from "react-router-dom";
 
 function PrivacyPolicy() {
   return (

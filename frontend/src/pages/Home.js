@@ -437,10 +437,11 @@ export default function Home() {
           {/* personal key demo */}
           <div className="mt-10">
             <h2 className="text-2xl font-semibold mb-2">
-              Riot Production Key Demo
+              Riot Personal Key Demo
             </h2>
             <p className="text-sm text-gray-400 mb-3">
-              Look up a player's PUUID via the official Riot API.
+              Look up a player's PUUID via the official Riot API. (not
+              implemented for vercel)
             </p>
             <form
               onSubmit={handleRiotLookup}

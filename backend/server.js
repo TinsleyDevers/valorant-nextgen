@@ -527,8 +527,4 @@ app.get("/api/account", async (req, res) => {
   }
 });
 
-app.listen(PORT, () =>
-  console.log(`Server running on http://localhost:${PORT}`)
-);
-
 console.log("Riot API Key:", process.env.RIOT_API_KEY);

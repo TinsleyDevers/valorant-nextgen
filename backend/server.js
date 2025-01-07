@@ -518,7 +518,7 @@ app.get("/api/account", async (req, res) => {
       username
     )}/${encodeURIComponent(tagline)}`;
     const response = await axios.get(url, {
-      headers: { "X-Riot-Token": RIOT_API_KEY },
+      headers: { "X-Riot-Token": process.env.RIOT_API_KEY },
     });
     res.json({ success: true, data: response.data });
   } catch (error) {
@@ -530,3 +530,5 @@ app.get("/api/account", async (req, res) => {
 app.listen(PORT, () =>
   console.log(`Server running on http://localhost:${PORT}`)
 );
+
+console.log("Riot API Key:", process.env.RIOT_API_KEY);

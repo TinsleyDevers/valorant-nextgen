@@ -110,6 +110,7 @@ export default function Home() {
   useEffect(() => {
     (async () => {
       try {
+        setIsLoading(true);
         const [resM, resLB] = await Promise.all([
           axios.get("https://valorant-nextgen.onrender.com/api/matches"),
           axios.get("https://valorant-nextgen.onrender.com/api/leaderboard"),

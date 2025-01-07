@@ -5,14 +5,17 @@ function LoadingScreen({ isLoading }) {
   const [showMessage, setShowMessage] = useState(false);
 
   useEffect(() => {
+    let timer;
     if (isLoading) {
-      const timer = setTimeout(() => {
+      timer = setTimeout(() => {
         setShowMessage(true);
       }, 5000);
-      return () => clearTimeout(timer);
     } else {
       setShowMessage(false);
     }
+    return () => {
+      clearTimeout(timer);
+    };
   }, [isLoading]);
 
   return (

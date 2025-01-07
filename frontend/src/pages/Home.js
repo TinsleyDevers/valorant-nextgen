@@ -228,9 +228,7 @@ export default function Home() {
       setRiotAccountData(r.data.data);
     } catch (err) {
       console.error(err);
-      setRiotError(
-        "Error fetching from Riot personal API (disabled if veiwed on vercel)."
-      );
+      setRiotError("Error fetching from Riot Personal API.");
     }
     setLoadingAccount(false);
   };

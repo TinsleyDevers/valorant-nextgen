@@ -440,8 +440,7 @@ export default function Home() {
               Riot Personal Key Demo
             </h2>
             <p className="text-sm text-gray-400 mb-3">
-              Look up a player's PUUID via the official Riot API. (not
-              implemented for vercel)
+              Look up a player's PUUID via the official Riot API.
             </p>
             <form
               onSubmit={handleRiotLookup}

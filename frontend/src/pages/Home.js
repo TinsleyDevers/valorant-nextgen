@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
+import LoadingScreen from "../components/LoadingScreen";
 
 function StatBox({ label, value, color = "teal" }) {
   const colorClass =
@@ -229,14 +230,16 @@ export default function Home() {
       setRiotAccountData(r.data.data);
     } catch (err) {
       console.error(err);
-      setRiotError("Error fetching from Riot Personal API.");
+      setRiotError(
+        "Error fetching from Riot Developer API. (Rate limited/Key expired?)"
+      );
     }
     setLoadingAccount(false);
   };
 
   return (
     <>
-      <LoadingOverlay isLoading={isLoading} />
+      <LoadingScreen isLoading={isLoading} />
       {!isLoading && (
         <div className="container mx-auto py-6">
           <h1 className="text-3xl font-bold mb-6 text-center">
@@ -435,10 +438,10 @@ export default function Home() {
             </p>
           )}
 
-          {/* personal key demo */}
+          {/* developer key demo */}
           <div className="mt-10">
             <h2 className="text-2xl font-semibold mb-2">
-              Riot Personal Key Demo
+              Riot Developer Key Demo
             </h2>
             <p className="text-sm text-gray-400 mb-3">
               Look up a player's PUUID via the official Riot API.

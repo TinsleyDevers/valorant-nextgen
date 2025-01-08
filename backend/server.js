@@ -409,6 +409,10 @@ app.get("/api/match/:matchId/player-stats", (req, res) => {
       damagePerRound: 132.6,
       roundsWithKills: 14,
       multiKillRounds: 6,
+      firstBloods: Math.floor(kills * 0.2),
+      clutches: Math.floor(kills * 0.1),
+      highestKillsInRound: Math.min(kills, 4),
+      headshotPercent: (foundPlayer.kdRatio * 25 + 10).toFixed(1),
     },
     myTeamName: foundTeam.name,
     enemyTeamName: enemyTeam.name,
@@ -538,5 +542,3 @@ app.get("/api/account", async (req, res) => {
     res.status(500).json({ error: "Could not fetch account" });
   }
 });
-
-console.log("Riot API Key:", process.env.RIOT_API_KEY);

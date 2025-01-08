@@ -1,4 +1,4 @@
-//Home.js
+// Home.js
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
@@ -12,58 +12,24 @@ function StatBox({ label, value, color = "teal" }) {
       yellow: "text-yellow-300",
       pink: "text-pink-300",
       blue: "text-blue-300",
+      red: "text-red-300",
+      green: "text-green-300",
     }[color] || "text-teal-300";
 
   return (
-    <div className="p-2 bg-gray-800 rounded">
-      <p className="text-xs text-gray-400">{label}</p>
-      <p className={`text-lg font-bold ${colorClass}`}>{value}</p>
-    </div>
-  );
-}
-
-function TeamTable({ title, data }) {
-  return (
-    <div className="bg-gray-700 p-4 rounded mt-4">
-      <h4 className="font-semibold text-lg text-gray-200 mb-2">{title}</h4>
-      {data && data.length > 0 ? (
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm text-gray-300 mb-4">
-            <thead className="text-xs uppercase bg-gray-700 text-gray-400">
-              <tr>
-                <th className="px-3 py-2">Player</th>
-                <th className="px-3 py-2">Score</th>
-                <th className="px-3 py-2">K/D</th>
-                <th className="px-3 py-2">Econ</th>
-                <th className="px-3 py-2">Plants</th>
-                <th className="px-3 py-2">Defuses</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.map((pl, idx) => (
-                <tr
-                  key={idx}
-                  className="border-b border-gray-600 last:border-b-0 hover:bg-gray-800 transition duration-200"
-                >
-                  <td className="px-3 py-2">{pl.playerName}</td>
-                  <td className="px-3 py-2 text-center">{pl.score}</td>
-                  <td className="px-3 py-2 text-center">{pl.kd}</td>
-                  <td className="px-3 py-2 text-center">{pl.econ}</td>
-                  <td className="px-3 py-2 text-center">{pl.plants}</td>
-                  <td className="px-3 py-2 text-center">{pl.defuses}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <p className="text-gray-400">No data available.</p>
-      )}
-    </div>
+    <motion.div
+      whileHover={{ scale: 1.05 }}
+      className="p-4 bg-gray-800 rounded shadow-lg hover:bg-gray-700 transition relative overflow-hidden"
+    >
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-transparent via-white/10 to-transparent blur-xl opacity-0 hover:opacity-10 transition" />
+      <p className="text-xs text-gray-400 uppercase tracking-wider">{label}</p>
+      <p className={`text-2xl font-bold ${colorClass} mt-1`}>{value}</p>
+    </motion.div>
   );
 }
 
 export default function Home() {
+  // States
   const [isLoading, setIsLoading] = useState(true);
   const [matches, setMatches] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
@@ -77,14 +43,14 @@ export default function Home() {
 
   const modalRef = useRef(null);
 
-  // riot personal key stuff
+  // Riot dev key demo states
   const [riotUsername, setRiotUsername] = useState("ZambieD");
   const [riotTagline, setRiotTagline] = useState("whale");
   const [riotAccountData, setRiotAccountData] = useState(null);
   const [riotError, setRiotError] = useState("");
   const [loadingAccount, setLoadingAccount] = useState(false);
 
-  // minimaps
+  // Minimaps
   const minimaps = {
     Ascent:
       "https://static.wikia.nocookie.net/valorant/images/0/04/Ascent_minimap.png",
@@ -95,6 +61,7 @@ export default function Home() {
       "https://static.wikia.nocookie.net/valorant/images/c/cf/Icebox_minimap.png",
   };
 
+  // Fetch data
   useEffect(() => {
     (async () => {
       try {
@@ -111,18 +78,33 @@ export default function Home() {
         setIsLoading(false);
       }
     })();
+
     const handleClickOutside = (e) => {
-      if (modalRef.current && !modalRef.current.contains(e.target))
+      if (modalRef.current && !modalRef.current.contains(e.target)) {
         closeModal();
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // anims
+  // Animation Variants
   const leagueButtonVariant = {
     rest: { scale: 1, opacity: 0.8 },
-    hover: { scale: 1.05, opacity: 1 },
+    hover: {
+      scale: 1.05,
+      opacity: 1,
+      transition: { duration: 0.2 },
+    },
+  };
+  const matchCardVariant = {
+    rest: { scale: 1, opacity: 1 },
+    hover: {
+      scale: 1.03,
+      opacity: 1,
+      boxShadow: "0 8px 20px rgba(0, 0, 0, 0.8)",
+      transition: { duration: 0.3 },
+    },
   };
   const matchesContainerVariants = {
     hidden: { opacity: 0 },
@@ -133,15 +115,20 @@ export default function Home() {
     show: { opacity: 1, scale: 1 },
   };
 
-  const handleLeagueToggle = (league) =>
+  // Handlers
+  const handleLeagueToggle = (league) => {
     setSelectedLeague(selectedLeague === league ? null : league);
+    setExpandedMatchIds([]); // reset expansions
+  };
+
   const toggleMatchExpand = (matchId) => {
-    setExpandedMatchIds(
-      expandedMatchIds.includes(matchId)
-        ? expandedMatchIds.filter((id) => id !== matchId)
-        : [...expandedMatchIds, matchId]
+    setExpandedMatchIds((prev) =>
+      prev.includes(matchId)
+        ? prev.filter((id) => id !== matchId)
+        : [...prev, matchId]
     );
   };
+
   const closeModal = () => {
     setSelectedPlayer(null);
     setSelectedPlayerStats(null);
@@ -150,14 +137,13 @@ export default function Home() {
     setShowRankedStats(false);
   };
 
-  // leagues
   const filteredMatches = selectedLeague
     ? matches.filter(
         (m) => m.tournament.toLowerCase() === selectedLeague.toLowerCase()
       )
-    : [];
+    : matches;
 
-  // rank logic
+  // Leaderboard rank
   const getPlayerRank = (n, t) => {
     const lb = leaderboard.find((p) => p.name === n && p.tagline === t);
     return lb ? lb.rank : null;
@@ -167,6 +153,7 @@ export default function Home() {
     (rankStr.toLowerCase().includes("immortal") ||
       rankStr.toLowerCase().includes("radiant"));
 
+  // Player advanced stats
   const handlePlayerClick = async (matchId, player) => {
     closeModal();
     setSelectedPlayer(player);
@@ -188,9 +175,7 @@ export default function Home() {
       try {
         const r = await axios.get(
           "https://valorant-nextgen.onrender.com/api/ranked-stats",
-          {
-            params: { name: n, tagline: t },
-          }
+          { params: { name: n, tagline: t } }
         );
         setSelectedRankedStats(r.data.rankedStats);
       } catch {}
@@ -201,7 +186,7 @@ export default function Home() {
     }
   };
 
-  // production key example usages
+  // Riot dev key demo
   const handleRiotLookup = async (e) => {
     e.preventDefault();
     setRiotError("");
@@ -227,124 +212,133 @@ export default function Home() {
   return (
     <>
       <LoadingScreen isLoading={isLoading} />
+
       {!isLoading && (
-        <div className="container mx-auto py-6">
-          <h1 className="text-3xl font-bold mb-6 text-center">
+        <div className="container mx-auto py-12 px-4">
+          {/* Title */}
+          <h1 className="text-4xl font-extrabold text-gray-100 text-center mb-8">
             Valorant Collegiate Next-Gen
           </h1>
+
           {/* League Buttons */}
-          <div className="flex justify-center space-x-4 mb-8">
-            <motion.div
+          <div className="flex justify-center space-x-4 mb-12">
+            <motion.button
               variants={leagueButtonVariant}
               initial="rest"
               whileHover="hover"
+              className={`px-6 py-3 rounded-lg text-lg font-semibold transition shadow-md ${
+                selectedLeague === "NJAACE"
+                  ? "bg-red-600 text-white"
+                  : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+              }`}
+              onClick={() => handleLeagueToggle("NJAACE")}
             >
-              <button
-                className={`px-4 py-2 rounded ${
-                  selectedLeague === "NJAACE" ? "bg-red-600" : "bg-gray-700"
-                } hover:bg-red-500 transition`}
-                onClick={() => handleLeagueToggle("NJAACE")}
-              >
-                NJAACE
-              </button>
-            </motion.div>
-            <motion.div
+              NJAACE
+            </motion.button>
+            <motion.button
               variants={leagueButtonVariant}
               initial="rest"
               whileHover="hover"
+              className={`px-6 py-3 rounded-lg text-lg font-semibold transition shadow-md ${
+                selectedLeague === "Southern Esports Conference"
+                  ? "bg-red-600 text-white"
+                  : "bg-gray-700 text-gray-300 hover:bg-gray-600"
+              }`}
+              onClick={() => handleLeagueToggle("Southern Esports Conference")}
             >
-              <button
-                className={`px-4 py-2 rounded ${
-                  selectedLeague === "Southern Esports Conference"
-                    ? "bg-red-600"
-                    : "bg-gray-700"
-                } hover:bg-red-500 transition`}
-                onClick={() =>
-                  handleLeagueToggle("Southern Esports Conference")
-                }
-              >
-                Southern Esports Conference
-              </button>
-            </motion.div>
+              Southern Esports Conference
+            </motion.button>
           </div>
 
-          {selectedLeague ? (
+          {/* Match Cards */}
+          {filteredMatches.length === 0 ? (
+            <p className="text-center text-gray-400">
+              {selectedLeague
+                ? "No matches found for this league."
+                : "No matches found."}
+            </p>
+          ) : (
             <motion.div
               variants={matchesContainerVariants}
               initial="hidden"
               animate="show"
-              className="space-y-6"
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
             >
               {filteredMatches.map((match) => {
+                const t0 = match.teams[0].roundsWon;
+                const t1 = match.teams[1].roundsWon;
+                const leftWinner = t0 > t1;
+                const rightWinner = t1 > t0;
                 const isExpanded = expandedMatchIds.includes(match.matchId);
-                const t0 = match.teams[0].roundsWon,
-                  t1 = match.teams[1].roundsWon;
-                const leftWinner = t0 > t1,
-                  rightWinner = t1 > t0;
+
                 return (
-                  <motion.div
-                    key={match.matchId}
-                    variants={matchItemVariants}
-                    className="relative rounded-lg overflow-hidden shadow-lg cursor-pointer"
-                    onClick={() => toggleMatchExpand(match.matchId)}
-                  >
-                    <div className="relative">
+                  <motion.div key={match.matchId} variants={matchItemVariants}>
+                    {/* Match Card */}
+                    <motion.div
+                      variants={matchCardVariant}
+                      initial="rest"
+                      whileHover="hover"
+                      className="relative rounded-lg overflow-hidden shadow-lg cursor-pointer bg-gray-900"
+                      onClick={() => toggleMatchExpand(match.matchId)}
+                    >
+                      {/* Blurred background behind card */}
                       <div
                         className="absolute inset-0 bg-cover bg-center bg-no-repeat filter blur-sm"
                         style={{ backgroundImage: `url(${match.mapImage})` }}
                       ></div>
-                      <div className="absolute inset-0 bg-black bg-opacity-45"></div>
-                      <div className="relative p-4 flex justify-between items-center">
-                        <div>
-                          <h2 className="text-xl font-bold text-white">
-                            {match.teams[0].name} vs {match.teams[1].name}
-                          </h2>
-                          <p className="text-sm text-gray-300">
-                            {match.map} | {match.date}
-                          </p>
-                        </div>
-                        <div className="flex items-center space-x-3">
+                      <div className="absolute inset-0 bg-black bg-opacity-60"></div>
+
+                      <div className="relative p-6">
+                        <h3 className="text-xl font-bold text-gray-100 mb-2">
+                          {match.teams[0].name} vs {match.teams[1].name}
+                        </h3>
+                        <p className="text-sm text-gray-300 mb-4">
+                          {match.map} | {match.date}
+                        </p>
+                        <div className="flex justify-between items-center">
                           <div className="flex items-center space-x-2">
                             <img
                               src={match.teams[0].teamLogo}
-                              alt="Team0"
+                              alt="Team 0 Logo"
                               className="w-8 h-8 object-contain"
                             />
                             <span
-                              className={`px-2 py-1 rounded text-white ${
+                              className={`text-lg font-semibold px-3 py-1 rounded ${
                                 leftWinner ? "bg-green-600" : "bg-red-600"
-                              }`}
+                              } text-white`}
                             >
                               {t0}
                             </span>
-                            <span className="font-bold text-white">-</span>
+                          </div>
+                          <p className="text-gray-300 font-bold">VS</p>
+                          <div className="flex items-center space-x-2">
                             <span
-                              className={`px-2 py-1 rounded text-white ${
+                              className={`text-lg font-semibold px-3 py-1 rounded ${
                                 rightWinner ? "bg-green-600" : "bg-red-600"
-                              }`}
+                              } text-white`}
                             >
                               {t1}
                             </span>
                             <img
                               src={match.teams[1].teamLogo}
-                              alt="Team1"
+                              alt="Team 1 Logo"
                               className="w-8 h-8 object-contain"
                             />
                           </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleMatchExpand(match.matchId);
-                            }}
-                            className="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded"
-                          >
-                            {isExpanded ? "Hide Details" : "View Details"}
-                          </button>
                         </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleMatchExpand(match.matchId);
+                          }}
+                          className="mt-4 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-white text-sm"
+                        >
+                          {isExpanded ? "Hide Details" : "View Details"}
+                        </button>
                       </div>
-                    </div>
+                    </motion.div>
 
-                    {/* expanded match details */}
+                    {/* Expanded Match Details */}
                     <AnimatePresence>
                       {isExpanded && (
                         <motion.div
@@ -352,63 +346,90 @@ export default function Home() {
                           animate={{ height: "auto", opacity: 1 }}
                           exit={{ height: 0, opacity: 0 }}
                           transition={{ duration: 0.4 }}
-                          className="bg-gray-800 px-4 py-4"
+                          className="mt-2 bg-gray-800 rounded-lg overflow-hidden shadow-inner"
                         >
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {match.teams.map((team, idx) => (
+                          <div className="p-4 flex flex-col md:flex-row gap-4 bg-gray-900">
+                            {match.teams.map((team, teamIdx) => (
                               <div
-                                key={idx}
-                                className="bg-gray-700 p-3 rounded space-y-2"
+                                key={teamIdx}
+                                className="bg-gray-800 p-4 rounded shadow-md flex-1"
                               >
-                                <h4 className="font-semibold text-lg mb-2 text-gray-200">
+                                <h4 className="font-semibold text-lg mb-3 text-gray-200 border-b border-gray-700 pb-2">
                                   {team.name}
                                 </h4>
-                                {team.players.map((player, i) => {
-                                  const rank = getPlayerRank(
-                                    player.name,
-                                    player.tagline
-                                  );
-                                  const special = isRadiantOrImmortal(rank);
-                                  let rankClass =
-                                    "text-gray-300 hover:text-gray-100";
-                                  if (special) {
-                                    if (rank?.toLowerCase().includes("radiant"))
-                                      rankClass =
-                                        "text-yellow-300 hover:text-yellow-200 border-l-4 border-yellow-300 pl-2";
-                                    else if (
-                                      rank?.toLowerCase().includes("immortal")
-                                    )
-                                      rankClass =
-                                        "text-pink-300 hover:text-pink-200 border-l-4 border-pink-300 pl-2";
-                                  }
-                                  return (
-                                    <div
-                                      key={i}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        handlePlayerClick(
-                                          match.matchId,
-                                          player
-                                        );
-                                      }}
-                                      className={`flex flex-col border-b border-gray-600 py-2 last:border-b-0 cursor-pointer transition hover:bg-gray-600 ${rankClass}`}
-                                    >
-                                      <span>
-                                        {player.name}#{player.tagline}
-                                        {rank && (
-                                          <span className="ml-2 text-xs italic text-gray-400">
-                                            ({rank})
-                                          </span>
-                                        )}
-                                      </span>
-                                      <span className="text-sm text-gray-400">
-                                        K/D: {player.kills}/{player.deaths} |
-                                        KD: {player.kdRatio} | ACS: {player.acs}{" "}
-                                        | KAST: {player.kast}%
-                                      </span>
-                                    </div>
-                                  );
-                                })}
+
+                                <div className="space-y-3">
+                                  {team.players.map((player, i) => {
+                                    const rank = getPlayerRank(
+                                      player.name,
+                                      player.tagline
+                                    );
+                                    const special = isRadiantOrImmortal(rank);
+
+                                    // rank style
+                                    let containerClass =
+                                      "bg-gray-700 p-3 rounded hover:bg-gray-600 transition cursor-pointer relative";
+                                    let highlightStyle = "";
+                                    if (special) {
+                                      if (
+                                        rank?.toLowerCase().includes("radiant")
+                                      ) {
+                                        highlightStyle =
+                                          "border-l-4 border-yellow-300 pl-3";
+                                      } else if (
+                                        rank?.toLowerCase().includes("immortal")
+                                      ) {
+                                        highlightStyle =
+                                          "border-l-4 border-pink-300 pl-3";
+                                      }
+                                    }
+
+                                    return (
+                                      <motion.div
+                                        key={i}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handlePlayerClick(
+                                            match.matchId,
+                                            player
+                                          );
+                                        }}
+                                        className={`${containerClass} ${highlightStyle}`}
+                                        whileHover={{ scale: 1.01 }}
+                                      >
+                                        <p className="text-sm text-white font-bold">
+                                          {player.name}#{player.tagline}{" "}
+                                          {rank && (
+                                            <span className="ml-1 text-xs italic text-gray-300">
+                                              ({rank})
+                                            </span>
+                                          )}
+                                        </p>
+                                        <p className="text-xs text-gray-300 mt-1 leading-snug">
+                                          <span className="font-semibold">
+                                            K/D:
+                                          </span>{" "}
+                                          {player.kills}/{player.deaths}{" "}
+                                          <span className="mx-1">|</span>
+                                          <span className="font-semibold">
+                                            KD:
+                                          </span>{" "}
+                                          {player.kdRatio}
+                                          <span className="mx-1">|</span>
+                                          <span className="font-semibold">
+                                            ACS:
+                                          </span>{" "}
+                                          {player.acs}
+                                          <span className="mx-1">|</span>
+                                          <span className="font-semibold">
+                                            KAST:
+                                          </span>{" "}
+                                          {player.kast}%
+                                        </p>
+                                      </motion.div>
+                                    );
+                                  })}
+                                </div>
                               </div>
                             ))}
                           </div>
@@ -419,15 +440,11 @@ export default function Home() {
                 );
               })}
             </motion.div>
-          ) : (
-            <p className="text-center text-gray-400">
-              Please select a league above.
-            </p>
           )}
 
-          {/* developer key demo */}
-          <div className="mt-10">
-            <h2 className="text-2xl font-semibold mb-2">
+          {/* Riot Developer Key Demo */}
+          <div className="mt-12">
+            <h2 className="text-2xl font-semibold mb-2 text-gray-100">
               Riot Developer Key Demo
             </h2>
             <p className="text-sm text-gray-400 mb-3">
@@ -442,18 +459,18 @@ export default function Home() {
                 placeholder="Username"
                 value={riotUsername}
                 onChange={(e) => setRiotUsername(e.target.value)}
-                className="flex-1 px-3 py-2 rounded bg-gray-700 border border-gray-600 focus:outline-none"
+                className="flex-1 px-3 py-2 rounded bg-gray-700 border border-gray-600 focus:outline-none text-white"
               />
               <input
                 type="text"
                 placeholder="Tagline"
                 value={riotTagline}
                 onChange={(e) => setRiotTagline(e.target.value)}
-                className="flex-1 px-3 py-2 rounded bg-gray-700 border border-gray-600 focus:outline-none"
+                className="flex-1 px-3 py-2 rounded bg-gray-700 border border-gray-600 focus:outline-none text-white"
               />
               <button
                 type="submit"
-                className="bg-red-600 hover:bg-red-500 px-4 py-2 rounded text-white"
+                className="bg-red-600 hover:bg-red-500 px-4 py-2 rounded text-white font-semibold"
               >
                 Fetch PUUID
               </button>
@@ -467,179 +484,160 @@ export default function Home() {
             ) : (
               riotAccountData && (
                 <div className="bg-gray-800 p-4 rounded">
-                  <h3 className="font-semibold text-lg mb-2">Account Data</h3>
-                  <p>PUUID: {riotAccountData.puuid}</p>
-                  <p>GameName: {riotAccountData.gameName}</p>
-                  <p>TagLine: {riotAccountData.tagLine}</p>
+                  <h3 className="font-semibold text-lg mb-2 text-gray-100">
+                    Account Data
+                  </h3>
+                  <p className="text-gray-300">
+                    PUUID: {riotAccountData.puuid}
+                  </p>
+                  <p className="text-gray-300">
+                    GameName: {riotAccountData.gameName}
+                  </p>
+                  <p className="text-gray-300">
+                    TagLine: {riotAccountData.tagLine}
+                  </p>
                 </div>
               )
             )}
           </div>
         </div>
       )}
+
+      {/* Player Stats Modal */}
       <AnimatePresence>
         {selectedPlayer && selectedPlayerStats && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-6"
           >
             <motion.div
               key="modal"
               ref={modalRef}
-              initial={{ scale: 0.7, opacity: 0 }}
+              initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.7, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="stats-modal bg-gray-800 rounded-lg w-full max-w-3xl p-6 relative overflow-y-auto max-h-[90vh]"
+              exit={{ scale: 0.8, opacity: 0 }}
+              transition={{ duration: 0.4 }}
+              className="bg-gradient-to-br from-gray-800 via-gray-900 to-black rounded-2xl shadow-2xl p-8 relative max-w-5xl w-full overflow-y-auto max-h-[90vh]"
             >
+              {/* Close Button */}
               <button
                 onClick={closeModal}
-                className="absolute top-3 right-3 text-gray-400 hover:text-gray-200"
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-100 text-xl"
               >
                 ✕
               </button>
 
-              {/* Player Name */}
-              <div className="text-center mb-2">
-                <p className="text-gray-400">
-                  {selectedPlayerStats.myTeamName}
-                </p>
-                <p className="text-2xl font-bold text-gray-300">
-                  {selectedPlayer.name}#{selectedPlayer.tagline}
-                </p>
+              {/* Header Section */}
+              <div className="flex flex-wrap md:flex-nowrap items-center justify-between pb-6 border-b border-gray-700 gap-4">
+                <div>
+                  <p className="text-sm text-gray-500">
+                    {selectedPlayerStats.myTeamName}
+                  </p>
+                  <h2 className="text-3xl font-bold text-white">
+                    {selectedPlayer.name}#{selectedPlayer.tagline}
+                  </h2>
+                  <p
+                    className={`text-lg font-semibold ${
+                      selectedPlayerStats.matchOutcome === "Victory"
+                        ? "text-green-500"
+                        : "text-red-500"
+                    }`}
+                  >
+                    {selectedPlayerStats.matchOutcome}
+                  </p>
+                </div>
+                <div className="flex flex-col items-end">
+                  <p className="text-gray-300 text-sm">
+                    <span className="font-bold">Map:</span>{" "}
+                    {selectedPlayerStats.mapPlayed}
+                  </p>
+                  <p className="text-gray-300 text-sm">
+                    <span className="font-bold">Duration:</span>{" "}
+                    {selectedPlayerStats.matchDuration}
+                  </p>
+                </div>
               </div>
 
-              {/* Victory/Defeat Section */}
-              <div className="text-center mb-4">
-                <p
-                  className={`text-2xl font-bold ${
-                    selectedPlayerStats.matchOutcome === "Victory"
-                      ? "text-green-500"
-                      : "text-red-500"
-                  }`}
-                >
-                  {selectedPlayerStats.matchOutcome}
-                </p>
-                <p className="text-gray-200 text-xl font-bold">
-                  {selectedPlayerStats.matchDuration} •{" "}
-                  {selectedPlayerStats.howLongAgo}
-                </p>
-                <p className="text-gray-400">
-                  {selectedPlayerStats.myTeamName} vs{" "}
-                  {selectedPlayerStats.enemyTeamName}
-                </p>
+              {/* Advanced Stats Row */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                <StatBox
+                  label="Combat Score"
+                  value={selectedPlayerStats.generalStats.combatScore}
+                  color="teal"
+                />
+                <StatBox
+                  label="Kills"
+                  value={selectedPlayerStats.generalStats.kills}
+                  color="yellow"
+                />
+                <StatBox
+                  label="Deaths"
+                  value={selectedPlayerStats.generalStats.deaths}
+                  color="red"
+                />
+                <StatBox
+                  label="Assists"
+                  value={selectedPlayerStats.generalStats.assists}
+                  color="blue"
+                />
+                <StatBox
+                  label="KDA"
+                  value={selectedPlayerStats.generalStats.kda}
+                  color="purple"
+                />
+                <StatBox
+                  label="Damage/Round"
+                  value={selectedPlayerStats.generalStats.damagePerRound}
+                  color="pink"
+                />
               </div>
-
-              {selectedPlayerStats.analysis?.map((a, i) => (
-                <div
-                  key={i}
-                  className="bg-gray-700 p-3 rounded mb-2 text-sm text-gray-300"
-                >
-                  {a.text}
-                </div>
-              ))}
-
-              {/** Damage Comparison */}
-              {selectedPlayerStats.damageComparison && (
-                <div className="bg-gray-700 p-4 rounded mb-4 flex flex-col md:flex-row items-center justify-around">
-                  <div className="text-center mb-2 md:mb-0">
-                    <p className="text-sm text-gray-400 mb-1">
-                      {selectedPlayerStats.damageComparison.matchDamageLabel}
-                    </p>
-                    <p className="text-lg text-teal-300 font-bold">
-                      {selectedPlayerStats.damageComparison.thisMatchDamage}{" "}
-                      Damage
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm text-gray-400 mb-1">
-                      {selectedPlayerStats.damageComparison.averageDamageLabel}
-                    </p>
-                    <p className="text-lg text-purple-300 font-bold">
-                      {selectedPlayerStats.damageComparison.averageDamage}{" "}
-                      Damage
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/** General Stats */}
-              {selectedPlayerStats.generalStats && (
-                <div className="bg-gray-700 p-4 rounded mb-4">
-                  <h3 className="font-semibold text-lg mb-2 text-gray-200">
-                    General Stats
-                  </h3>
-                  <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
-                    <StatBox
-                      label="Combat Score"
-                      value={selectedPlayerStats.generalStats.combatScore}
-                      color="teal"
-                    />
-                    <StatBox
-                      label="KDA"
-                      value={selectedPlayerStats.generalStats.kda}
-                      color="purple"
-                    />
-                    <StatBox
-                      label="Kills"
-                      value={selectedPlayerStats.generalStats.kills}
-                      color="yellow"
-                    />
-                    <StatBox
-                      label="Deaths"
-                      value={selectedPlayerStats.generalStats.deaths}
-                      color="pink"
-                    />
-                    <StatBox
-                      label="Assists"
-                      value={selectedPlayerStats.generalStats.assists}
-                      color="blue"
-                    />
-                    <StatBox
-                      label="Damage / Round"
-                      value={selectedPlayerStats.generalStats.damagePerRound}
-                      color="teal"
-                    />
-                  </div>
-                </div>
-              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <StatBox
+                  label="First Bloods"
+                  value={
+                    selectedPlayerStats.additionalStats?.firstBloods ?? "N/A"
+                  }
+                  color="green"
+                />
+                <StatBox
+                  label="Clutches"
+                  value={selectedPlayerStats.additionalStats?.clutches ?? "N/A"}
+                  color="teal"
+                />
+                <StatBox
+                  label="Most Kills in a Round"
+                  value={
+                    selectedPlayerStats.additionalStats?.highestKillsInRound ??
+                    "N/A"
+                  }
+                  color="blue"
+                />
+                <StatBox
+                  label="Headshot %"
+                  value={
+                    selectedPlayerStats.additionalStats?.headshotPercent ??
+                    "N/A"
+                  }
+                  color="yellow"
+                />
+              </div>
 
               {/* Match Details */}
-              <div className="bg-gray-700 p-4 rounded mb-4">
-                <h4 className="font-semibold text-lg text-gray-200 mb-3">
+              <div className="bg-gray-700 p-4 rounded-lg mt-8">
+                <h3 className="text-2xl font-bold text-white mb-4">
                   Match Details
-                </h4>
-
-                {/* Map Name */}
-                <p className="text-gray-300 mb-2">
-                  <span className="font-bold text-teal-300">Map:</span>{" "}
-                  {selectedPlayerStats.mapPlayed}
-                </p>
-
-                {/* Match Duration */}
-                <p className="text-gray-300 mb-2">
-                  <span className="font-bold text-teal-300">
-                    Match Duration:
-                  </span>{" "}
-                  {selectedPlayerStats.matchDuration || "Unavailable"}
-                </p>
-
-                {/* Final Score */}
-                <p className="text-gray-300 mb-2">
+                </h3>
+                <p className="text-gray-300 mb-1">
                   <span className="font-bold text-teal-300">Final Score:</span>{" "}
                   {selectedPlayerStats.matchScore}
                 </p>
-
-                {/* Total Rounds Played */}
-                <p className="text-gray-300 mb-2">
+                <p className="text-gray-300 mb-1">
                   <span className="font-bold text-teal-300">Total Rounds:</span>{" "}
-                  {selectedPlayerStats.totalRounds || "Unavailable"}
+                  {selectedPlayerStats.totalRounds}
                 </p>
-
-                {/* Winning Team */}
-                <p className="text-gray-300 mb-2">
+                <p className="text-gray-300">
                   <span className="font-bold text-teal-300">Winning Team:</span>{" "}
                   {selectedPlayerStats.matchOutcome === "Victory"
                     ? selectedPlayerStats.myTeamName
@@ -647,71 +645,178 @@ export default function Home() {
                 </p>
               </div>
 
-              {/** Weapon Stats */}
-              {selectedPlayerStats.weaponStats?.length ? (
-                <div className="bg-gray-700 p-4 rounded mb-4">
-                  <h4 className="font-semibold text-lg text-gray-200 mb-2">
-                    Weapon Stats
+              {/* Teams */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+                {/* My Team */}
+                <div className="bg-gray-800 p-4 rounded-lg shadow-md">
+                  <h4 className="text-xl font-bold text-gray-100 mb-3 border-b border-gray-700 pb-2">
+                    {selectedPlayerStats.myTeamName}
                   </h4>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full text-sm text-gray-300">
-                      <thead className="text-xs uppercase bg-gray-700 text-gray-400">
-                        <tr>
-                          <th className="px-4 py-2 text-left">Weapon</th>
-                          <th className="px-4 py-2 text-center">Total Kills</th>
-                          <th className="px-4 py-2 text-center">Kills/Round</th>
-                          <th className="px-4 py-2 text-center">HS%</th>
-                          <th className="px-4 py-2 text-center">Avg. Damage</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {[...selectedPlayerStats.weaponStats]
-                          .sort((a, b) => b.totalKills - a.totalKills)
-                          .map((weapon, idx) => (
-                            <tr
-                              key={idx}
-                              className="hover:bg-gray-800 transition duration-200"
-                            >
-                              <td className="px-4 py-2 text-left font-semibold text-gray-200">
-                                {weapon.weaponName}
-                              </td>
-                              <td className="px-4 py-2 text-center text-teal-400">
-                                {weapon.totalKills}
-                              </td>
-                              <td className="px-4 py-2 text-center text-yellow-300">
-                                {weapon.killsPerRound.toFixed(2)}
-                              </td>
-                              <td className="px-4 py-2 text-center text-pink-300">
-                                {weapon.headshotPercent.toFixed(1)}%
-                              </td>
-                              <td className="px-4 py-2 text-center text-blue-300">
-                                {weapon.avgDamage.toFixed(1)}
-                              </td>
-                            </tr>
-                          ))}
-                      </tbody>
-                    </table>
+                  {selectedPlayerStats.myTeam.map((pl, idx) => (
+                    <motion.div
+                      key={idx}
+                      whileHover={{ scale: 1.02 }}
+                      className="bg-gray-700 p-3 rounded mb-2 text-sm text-gray-300 hover:bg-gray-600 transition relative"
+                    >
+                      <p className="text-gray-100 font-semibold">
+                        {pl.playerName}
+                      </p>
+                      <p className="leading-snug mt-1">
+                        Score: {pl.score} | K/D: {pl.kd} | Econ: {pl.econ} |
+                        Plants: {pl.plants} | Defuses: {pl.defuses}
+                      </p>
+                    </motion.div>
+                  ))}
+                </div>
+                {/* Enemy Team */}
+                <div className="bg-gray-800 p-4 rounded-lg shadow-md">
+                  <h4 className="text-xl font-bold text-gray-100 mb-3 border-b border-gray-700 pb-2">
+                    {selectedPlayerStats.enemyTeamName}
+                  </h4>
+                  {selectedPlayerStats.enemyTeam.map((pl, idx) => (
+                    <motion.div
+                      key={idx}
+                      whileHover={{ scale: 1.02 }}
+                      className="bg-gray-700 p-3 rounded mb-2 text-sm text-gray-300 hover:bg-gray-600 transition relative"
+                    >
+                      <p className="text-gray-100 font-semibold">
+                        {pl.playerName}
+                      </p>
+                      <p className="leading-snug mt-1">
+                        Score: {pl.score} | K/D: {pl.kd} | Econ: {pl.econ} |
+                        Plants: {pl.plants} | Defuses: {pl.defuses}
+                      </p>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Weapon Stats */}
+              {selectedPlayerStats.weaponStats?.length > 0 && (
+                <div className="mt-10">
+                  <h3 className="text-2xl font-bold text-white mb-4">
+                    Weapon Stats
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {selectedPlayerStats.weaponStats.map((weapon, idx) => (
+                      <motion.div
+                        key={idx}
+                        initial={{ y: 20, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: idx * 0.1 }}
+                        className="bg-gray-800 p-6 rounded-lg shadow-lg hover:bg-gray-700 transition relative"
+                      >
+                        <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-transparent via-white/5 to-transparent blur opacity-0 hover:opacity-10 transition" />
+                        <h4 className="text-xl font-semibold text-white mb-2">
+                          {weapon.weaponName}
+                        </h4>
+                        <p className="text-gray-300">
+                          <span className="font-bold text-green-400">
+                            Kills:
+                          </span>{" "}
+                          {weapon.totalKills}
+                        </p>
+                        <p className="text-gray-300">
+                          <span className="font-bold text-yellow-400">
+                            Headshot %:
+                          </span>{" "}
+                          {weapon.headshotPercent.toFixed(1)}%
+                        </p>
+                        <p className="text-gray-300">
+                          <span className="font-bold text-blue-400">
+                            Avg. Damage:
+                          </span>{" "}
+                          {weapon.avgDamage.toFixed(1)}
+                        </p>
+                      </motion.div>
+                    ))}
                   </div>
                 </div>
-              ) : (
-                <p className="text-gray-400">No weapon stats available.</p>
               )}
 
-              {/** Team Stats */}
-              <TeamTable
-                title={selectedPlayerStats.myTeamName}
-                data={selectedPlayerStats.myTeam}
-              />
-              <TeamTable
-                title={selectedPlayerStats.enemyTeamName}
-                data={selectedPlayerStats.enemyTeam}
-              />
+              {/* Ranked Stats */}
+              {showRankedStats && selectedRankedStats && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="mt-8 p-4 bg-gray-700 rounded-lg"
+                >
+                  <h3 className="text-2xl font-bold text-white mb-4">
+                    Ranked Stats
+                  </h3>
+                  <p className="text-gray-300 mb-1">
+                    <span className="font-bold text-teal-300">Rank:</span>{" "}
+                    {selectedRankedStats.rank}
+                  </p>
+                  <p className="text-gray-300 mb-1">
+                    <span className="font-bold text-teal-300">RR:</span>{" "}
+                    {selectedRankedStats.rr}
+                  </p>
+                  <p className="text-gray-300 mb-1">
+                    <span className="font-bold text-teal-300">Wins:</span>{" "}
+                    {selectedRankedStats.wins}
+                  </p>
+                  <p className="text-gray-300 mb-1">
+                    <span className="font-bold text-teal-300">Losses:</span>{" "}
+                    {selectedRankedStats.losses}
+                  </p>
+                  <p className="text-gray-300">
+                    <span className="font-bold text-teal-300">
+                      Recent Performance:
+                    </span>{" "}
+                    {selectedRankedStats.recentPerformance.join(", ")}
+                  </p>
+                </motion.div>
+              )}
 
-              {/** Heatmap and Ranked Stats */}
-              <div className="mt-4">
+              {/* Heatmap */}
+              {showHeatmap && (
+                <div className="mt-10 relative">
+                  <h3 className="text-2xl font-bold text-white mb-4">
+                    Heatmap
+                  </h3>
+                  <div
+                    className="w-full h-64 rounded-lg shadow-lg overflow-hidden relative"
+                    style={{
+                      background: `url('${
+                        minimaps[selectedPlayerStats.mapPlayed] ||
+                        "/map-heatmap.png"
+                      }') no-repeat center center / cover`,
+                    }}
+                  >
+                    {selectedPlayerStats.killLocations.map((loc, idx) => (
+                      <div
+                        key={idx}
+                        className="absolute w-4 h-4 bg-green-500 rounded-full animate-pulse"
+                        style={{
+                          left: `${loc.x / 10}%`,
+                          top: `${loc.y / 10}%`,
+                          transform: "translate(-50%, -50%)",
+                        }}
+                      />
+                    ))}
+                    {selectedPlayerStats.deathLocations.map((loc, idx) => (
+                      <div
+                        key={idx}
+                        className="absolute w-4 h-4 bg-red-500 rounded-full animate-pulse"
+                        style={{
+                          left: `${loc.x / 10}%`,
+                          top: `${loc.y / 10}%`,
+                          transform: "translate(-50%, -50%)",
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Modal Toggle Buttons */}
+              <div className="mt-8 flex flex-wrap justify-center gap-4">
                 <button
                   onClick={() => setShowHeatmap(!showHeatmap)}
-                  className="bg-blue-600 hover:bg-blue-500 px-3 py-2 rounded text-white mr-2"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 rounded-lg shadow-lg text-white font-semibold"
                 >
                   {showHeatmap ? "Hide Heatmap" : "Show Heatmap"}
                 </button>
@@ -725,7 +830,7 @@ export default function Home() {
                         selectedPlayer.tagline
                       )
                     }
-                    className="bg-purple-600 hover:bg-purple-500 px-3 py-2 rounded text-white"
+                    className="px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-lg shadow-lg text-white font-semibold"
                   >
                     {showRankedStats
                       ? "Hide Ranked Stats"
@@ -733,81 +838,10 @@ export default function Home() {
                   </button>
                 )}
               </div>
-
-              {/** Heatmap */}
-              {showHeatmap && (
-                <div className="mt-4 relative bg-gray-700 p-3 rounded">
-                  <div
-                    className="w-full h-64 relative"
-                    style={{
-                      background: `url('${
-                        minimaps[selectedPlayerStats.mapPlayed] ||
-                        "/map-heatmap.png"
-                      }') no-repeat top center / cover`,
-                    }}
-                  >
-                    {selectedPlayerStats.killLocations.map((l, i) => (
-                      <div
-                        key={`kill-${i}`}
-                        className="absolute w-4 h-4 bg-green-500 rounded-full opacity-90"
-                        style={{
-                          left: `${l.x / 10}%`,
-                          top: `${l.y / 10}%`,
-                          transform: "translate(-50%, -50%)",
-                        }}
-                      />
-                    ))}
-                    {selectedPlayerStats.deathLocations.map((l, i) => (
-                      <div
-                        key={`death-${i}`}
-                        className="absolute w-4 h-4 bg-red-500 rounded-full opacity-90"
-                        style={{
-                          left: `${l.x / 10}%`,
-                          top: `${l.y / 10}%`,
-                          transform: "translate(-50%, -50%)",
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Ranked Stats */}
-              <AnimatePresence>
-                {showRankedStats && selectedRankedStats && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.3 }}
-                    className="mt-4 p-3 bg-gray-700 rounded"
-                  >
-                    <h4 className="font-semibold mb-2">Ranked Stats</h4>
-                    <p className="text-gray-300">
-                      Username: {selectedPlayer.name}#{selectedPlayer.tagline}
-                    </p>
-                    <p className="text-gray-300">
-                      Rank: {selectedRankedStats.rank}
-                    </p>
-                    <p className="text-gray-300">
-                      RR: {selectedRankedStats.rr}
-                    </p>
-                    <p className="text-gray-300">
-                      Wins: {selectedRankedStats.wins}, Losses:{" "}
-                      {selectedRankedStats.losses}
-                    </p>
-                    <p className="text-gray-300">
-                      Recent Performance:{" "}
-                      {selectedRankedStats.recentPerformance.join(", ")}
-                    </p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-      ;
     </>
   );
 }

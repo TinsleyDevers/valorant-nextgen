@@ -1,14 +1,15 @@
+// about.js
 import React from "react";
 import { Link } from "react-router-dom";
 
 function About() {
   return (
-    <div className="min-h-screen bg-gray-900 text-gray-100 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-4">
+    <div className="min-h-screen bg-gray-900 text-gray-100 py-12 px-4">
+      <div className="container mx-auto max-w-4xl">
+        <h1 className="text-4xl font-extrabold text-gray-100 mb-6">
           About Valorant Collegiate Next-Gen
         </h1>
-        <p className="text-gray-300 mb-4">
+        <p className="text-gray-300 mb-4 leading-relaxed">
           Valorant Collegiate Next-Gen is a stats platform specifically designed
           for collegiate Valorant leagues. The goal is to bring advanced
           analytics and insights of each league to players, coaches, and fans of
@@ -18,7 +19,7 @@ function About() {
         <h2 className="text-2xl font-semibold text-red-400 mb-3">
           Current Features
         </h2>
-        <ul className="list-disc list-inside text-gray-300 mb-6">
+        <ul className="list-disc list-inside text-gray-300 mb-6 space-y-2">
           <li>
             Display detailed stats for custom matches, including team names,
             players, and their in-game performance.
@@ -40,7 +41,7 @@ function About() {
         <h2 className="text-2xl font-semibold text-red-400 mb-3">
           Future Plans
         </h2>
-        <ul className="list-disc list-inside text-gray-300 mb-6">
+        <ul className="list-disc list-inside text-gray-300 mb-6 space-y-2">
           <li>
             Expand coverage to include other collegiate leagues, such as NJCAAE,
             Southern Esports Conference (SEC), CVAL, and others.
@@ -59,7 +60,7 @@ function About() {
           </li>
         </ul>
 
-        <p className="text-gray-300 mb-4">
+        <p className="text-gray-300 mb-6 leading-relaxed">
           This platform is not a public stat tracker for every Valorant player
           but rather a dedicated tool to showcase the statistics of players
           within collegiate leagues. Players who are not on the ranked

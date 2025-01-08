@@ -63,19 +63,6 @@ function TeamTable({ title, data }) {
   );
 }
 
-function LoadingOverlay({ isLoading }) {
-  return (
-    <div
-      id="loading-overlay"
-      className={`fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center transition-opacity duration-500 ${
-        isLoading ? "opacity-100" : "opacity-0 pointer-events-none"
-      }`}
-    >
-      <div className="loading-spinner w-12 h-12 border-4 border-gray-500 border-t-red-500 rounded-full animate-spin" />
-    </div>
-  );
-}
-
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [matches, setMatches] = useState([]);

@@ -43,7 +43,7 @@ function TeamTable({ title, data }) {
               {data.map((pl, idx) => (
                 <tr
                   key={idx}
-                  className="border-b border-gray-600 last:border-b-0 hover:bg-gray-750"
+                  className="border-b border-gray-600 last:border-b-0 hover:bg-gray-800 transition duration-200"
                 >
                   <td className="px-3 py-2">{pl.playerName}</td>
                   <td className="px-3 py-2 text-center">{pl.score}</td>
@@ -477,7 +477,6 @@ export default function Home() {
           </div>
         </div>
       )}
-
       <AnimatePresence>
         {selectedPlayer && selectedPlayerStats && (
           <motion.div
@@ -502,7 +501,14 @@ export default function Home() {
                 ✕
               </button>
 
-              {/* victory/defeat section */}
+              {/* Player Name */}
+              <div className="text-center mb-2">
+                <p className="text-2xl font-bold text-gray-300">
+                  {selectedPlayer.name}#{selectedPlayer.tagline}
+                </p>
+              </div>
+
+              {/* Victory/Defeat Section */}
               <div className="text-center mb-4">
                 <p
                   className={`text-2xl font-bold ${
@@ -528,6 +534,7 @@ export default function Home() {
                 </div>
               ))}
 
+              {/** Damage Comparison */}
               {selectedPlayerStats.damageComparison && (
                 <div className="bg-gray-700 p-4 rounded mb-4 flex flex-col md:flex-row items-center justify-around">
                   <div className="text-center mb-2 md:mb-0">
@@ -551,6 +558,7 @@ export default function Home() {
                 </div>
               )}
 
+              {/** General Stats */}
               {selectedPlayerStats.generalStats && (
                 <div className="bg-gray-700 p-4 rounded mb-4">
                   <h3 className="font-semibold text-lg mb-2 text-gray-200">
@@ -591,16 +599,48 @@ export default function Home() {
                 </div>
               )}
 
+              {/* Match Details */}
               <div className="bg-gray-700 p-4 rounded mb-4">
+                <h4 className="font-semibold text-lg text-gray-200 mb-3">
+                  Match Details
+                </h4>
+
+                {/* Map Name */}
                 <p className="text-gray-300 mb-2">
-                  Map: {selectedPlayerStats.mapPlayed}
+                  <span className="font-bold text-teal-300">Map:</span>{" "}
+                  {selectedPlayerStats.mapPlayed}
                 </p>
+
+                {/* Match Duration */}
                 <p className="text-gray-300 mb-2">
-                  Kills/Deaths: {selectedPlayerStats.kills}/
-                  {selectedPlayerStats.deaths}
+                  <span className="font-bold text-teal-300">
+                    Match Duration:
+                  </span>{" "}
+                  {selectedPlayerStats.matchDuration || "Unavailable"}
+                </p>
+
+                {/* Final Score */}
+                <p className="text-gray-300 mb-2">
+                  <span className="font-bold text-teal-300">Final Score:</span>{" "}
+                  {selectedPlayerStats.matchScore}
+                </p>
+
+                {/* Total Rounds Played */}
+                <p className="text-gray-300 mb-2">
+                  <span className="font-bold text-teal-300">Total Rounds:</span>{" "}
+                  {selectedPlayerStats.totalRounds || "Unavailable"}
+                </p>
+
+                {/* Winning Team */}
+                <p className="text-gray-300 mb-2">
+                  <span className="font-bold text-teal-300">Winning Team:</span>{" "}
+                  {selectedPlayerStats.matchOutcome === "Victory"
+                    ? selectedPlayerStats.myTeamName
+                    : selectedPlayerStats.enemyTeamName}
                 </p>
               </div>
 
+              {/** Weapon Stats */}
               {selectedPlayerStats.weaponStats?.length ? (
                 <div className="bg-gray-700 p-4 rounded mb-4">
                   <h4 className="font-semibold text-lg text-gray-200 mb-2">
@@ -610,34 +650,38 @@ export default function Home() {
                     <table className="min-w-full text-sm text-gray-300">
                       <thead className="text-xs uppercase bg-gray-700 text-gray-400">
                         <tr>
-                          <th className="px-3 py-2">#</th>
-                          <th className="px-3 py-2">Weapon</th>
-                          <th className="px-3 py-2">Kills/Round</th>
-                          <th className="px-3 py-2">Headshot%</th>
-                          <th className="px-3 py-2">Avg. Dmg</th>
+                          <th className="px-4 py-2 text-left">Weapon</th>
+                          <th className="px-4 py-2 text-center">Total Kills</th>
+                          <th className="px-4 py-2 text-center">Kills/Round</th>
+                          <th className="px-4 py-2 text-center">HS%</th>
+                          <th className="px-4 py-2 text-center">Avg. Damage</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {selectedPlayerStats.weaponStats.map((w, i) => (
-                          <tr
-                            key={w.weaponName}
-                            className="border-b border-gray-600 last:border-b-0 hover:bg-gray-750"
-                          >
-                            <td className="px-3 py-2 text-center font-bold">
-                              {i + 1}
-                            </td>
-                            <td className="px-3 py-2">{w.weaponName}</td>
-                            <td className="px-3 py-2 text-center">
-                              {w.killsPerRound.toFixed(2)}
-                            </td>
-                            <td className="px-3 py-2 text-center text-yellow-300">
-                              {w.headshotPercent.toFixed(1)}%
-                            </td>
-                            <td className="px-3 py-2 text-center text-pink-300">
-                              {w.avgDamage.toFixed(1)}
-                            </td>
-                          </tr>
-                        ))}
+                        {[...selectedPlayerStats.weaponStats]
+                          .sort((a, b) => b.totalKills - a.totalKills)
+                          .map((weapon, idx) => (
+                            <tr
+                              key={idx}
+                              className="hover:bg-gray-800 transition duration-200"
+                            >
+                              <td className="px-4 py-2 text-left font-semibold text-gray-200">
+                                {weapon.weaponName}
+                              </td>
+                              <td className="px-4 py-2 text-center text-teal-400">
+                                {weapon.totalKills}
+                              </td>
+                              <td className="px-4 py-2 text-center text-yellow-300">
+                                {weapon.killsPerRound.toFixed(2)}
+                              </td>
+                              <td className="px-4 py-2 text-center text-pink-300">
+                                {weapon.headshotPercent.toFixed(1)}%
+                              </td>
+                              <td className="px-4 py-2 text-center text-blue-300">
+                                {weapon.avgDamage.toFixed(1)}
+                              </td>
+                            </tr>
+                          ))}
                       </tbody>
                     </table>
                   </div>
@@ -646,6 +690,7 @@ export default function Home() {
                 <p className="text-gray-400">No weapon stats available.</p>
               )}
 
+              {/** Team Stats */}
               <TeamTable
                 title={selectedPlayerStats.myTeamName}
                 data={selectedPlayerStats.myTeam}
@@ -655,6 +700,7 @@ export default function Home() {
                 data={selectedPlayerStats.enemyTeam}
               />
 
+              {/** Heatmap and Ranked Stats */}
               <div className="mt-4">
                 <button
                   onClick={() => setShowHeatmap(!showHeatmap)}
@@ -681,6 +727,7 @@ export default function Home() {
                 )}
               </div>
 
+              {/** Heatmap */}
               {showHeatmap && (
                 <div className="mt-4 relative bg-gray-700 p-3 rounded">
                   <div
@@ -718,6 +765,7 @@ export default function Home() {
                 </div>
               )}
 
+              {/* Ranked Stats */}
               <AnimatePresence>
                 {showRankedStats && selectedRankedStats && (
                   <motion.div
@@ -728,6 +776,9 @@ export default function Home() {
                     className="mt-4 p-3 bg-gray-700 rounded"
                   >
                     <h4 className="font-semibold mb-2">Ranked Stats</h4>
+                    <p className="text-gray-300">
+                      Username: {selectedPlayer.name}#{selectedPlayer.tagline}
+                    </p>
                     <p className="text-gray-300">
                       Rank: {selectedRankedStats.rank}
                     </p>
@@ -749,6 +800,7 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
+      ;
     </>
   );
 }

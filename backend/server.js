@@ -1,3 +1,4 @@
+// server.js
 require("dotenv").config();
 const express = require("express");
 const axios = require("axios");
@@ -366,11 +367,16 @@ app.get("/api/match/:matchId/player-stats", (req, res) => {
   }
   if (!foundTeam || !foundPlayer)
     return res.status(404).json({ error: "Player not found" });
+
   const enemyTeam = match.teams.find((t) => t !== foundTeam);
   const isVictory =
     foundTeam.roundsWon > enemyTeam.roundsWon ? "Victory" : "Defeat";
 
-  // Ensure kills/deaths match the match listing
+  // compute match score and total rounds
+  const matchScore = `${foundTeam.roundsWon} - ${enemyTeam.roundsWon}`;
+  const totalRounds = foundTeam.roundsWon + enemyTeam.roundsWon;
+
+  // kills/deaths match the listing
   const kills = foundPlayer.kills,
     deaths = foundPlayer.deaths;
 
@@ -378,7 +384,9 @@ app.get("/api/match/:matchId/player-stats", (req, res) => {
   const adv = {
     mapPlayed: match.map,
     matchOutcome: isVictory,
-    matchScore: "35:31",
+    matchDuration: "35:31",
+    matchScore: matchScore, // Dynamic match score
+    totalRounds: totalRounds, // Dynamic total rounds
     howLongAgo: "7 hours ago",
     kills,
     deaths,
@@ -423,18 +431,21 @@ app.get("/api/match/:matchId/player-stats", (req, res) => {
     weaponStats: [
       {
         weaponName: "Vandal",
+        totalKills: 10,
         killsPerRound: 1.0,
         headshotPercent: 26,
         avgDamage: 126.1,
       },
       {
         weaponName: "Operator",
+        totalKills: 7,
         killsPerRound: 0.8,
         headshotPercent: 10.5,
         avgDamage: 132.1,
       },
       {
         weaponName: "Phantom",
+        totalKills: 4,
         killsPerRound: 0.9,
         headshotPercent: 21.8,
         avgDamage: 118.9,
@@ -469,6 +480,7 @@ app.get("/api/match/:matchId/player-stats", (req, res) => {
     ],
     deathLocations: [{ x: 500, y: 550 }],
   };
+
   res.json({
     success: true,
     matchId,

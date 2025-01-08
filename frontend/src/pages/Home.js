@@ -503,6 +503,9 @@ export default function Home() {
 
               {/* Player Name */}
               <div className="text-center mb-2">
+                <p className="text-gray-400">
+                  {selectedPlayerStats.myTeamName}
+                </p>
                 <p className="text-2xl font-bold text-gray-300">
                   {selectedPlayer.name}#{selectedPlayer.tagline}
                 </p>
@@ -520,8 +523,12 @@ export default function Home() {
                   {selectedPlayerStats.matchOutcome}
                 </p>
                 <p className="text-gray-200 text-xl font-bold">
-                  {selectedPlayerStats.matchScore} •{" "}
+                  {selectedPlayerStats.matchDuration} •{" "}
                   {selectedPlayerStats.howLongAgo}
+                </p>
+                <p className="text-gray-400">
+                  {selectedPlayerStats.myTeamName} vs{" "}
+                  {selectedPlayerStats.enemyTeamName}
                 </p>
               </div>
 

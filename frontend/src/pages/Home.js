@@ -281,7 +281,6 @@ export default function Home() {
                       className="relative rounded-lg overflow-hidden shadow-lg cursor-pointer bg-gray-900"
                       onClick={() => toggleMatchExpand(match.matchId)}
                     >
-                      {/* Blurred background behind card */}
                       <div
                         className="absolute inset-0 bg-cover bg-center bg-no-repeat filter blur-sm"
                         style={{ backgroundImage: `url(${match.mapImage})` }}
@@ -366,7 +365,6 @@ export default function Home() {
                                     );
                                     const special = isRadiantOrImmortal(rank);
 
-                                    // rank style
                                     let containerClass =
                                       "bg-gray-700 p-3 rounded hover:bg-gray-600 transition cursor-pointer relative";
                                     let highlightStyle = "";
@@ -503,7 +501,7 @@ export default function Home() {
         </div>
       )}
 
-      {/* Player Stats Modal */}
+      {/* Player Stats */}
       <AnimatePresence>
         {selectedPlayer && selectedPlayerStats && (
           <motion.div
@@ -560,7 +558,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Advanced Stats Row */}
+              {/* Advanced Stats */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
                 <StatBox
                   label="Combat Score"
@@ -647,7 +645,7 @@ export default function Home() {
 
               {/* Teams */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                {/* My Team */}
+                {/* "My" (selected) Team */}
                 <div className="bg-gray-800 p-4 rounded-lg shadow-md">
                   <h4 className="text-xl font-bold text-gray-100 mb-3 border-b border-gray-700 pb-2">
                     {selectedPlayerStats.myTeamName}
@@ -812,7 +810,7 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Modal Toggle Buttons */}
+              {/* Toggle Buttons */}
               <div className="mt-8 flex flex-wrap justify-center gap-4">
                 <button
                   onClick={() => setShowHeatmap(!showHeatmap)}

@@ -344,7 +344,7 @@ const allMatches = [
   },
 ];
 
-// Return all matches
+// return matches
 app.get("/api/matches", (req, res) =>
   res.json({ success: true, data: allMatches })
 );
@@ -385,8 +385,8 @@ app.get("/api/match/:matchId/player-stats", (req, res) => {
     mapPlayed: match.map,
     matchOutcome: isVictory,
     matchDuration: "35:31",
-    matchScore: matchScore, // Dynamic match score
-    totalRounds: totalRounds, // Dynamic total rounds
+    matchScore: matchScore,
+    totalRounds: totalRounds,
     howLongAgo: "7 hours ago",
     kills,
     deaths,

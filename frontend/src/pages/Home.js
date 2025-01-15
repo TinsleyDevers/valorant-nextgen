@@ -203,7 +203,7 @@ export default function Home() {
     } catch (err) {
       console.error(err);
       setRiotError(
-        "Error fetching from Riot Developer API. (Rate limited/Key expired?)"
+        "Error fetching from Riot Developer API. (Rate limited/Key expired/Disabled on Vercel demo)"
       );
     }
     setLoadingAccount(false);
@@ -446,7 +446,8 @@ export default function Home() {
               Riot Developer Key Demo
             </h2>
             <p className="text-sm text-gray-400 mb-3">
-              Look up a player's PUUID via the official Riot API.
+              Look up a player's PUUID via the official Riot API. (DISABLED ON
+              THE LIVE DEMO SITE)
             </p>
             <form
               onSubmit={handleRiotLookup}

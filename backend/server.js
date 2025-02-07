@@ -8,6 +8,20 @@ const querystring = require("querystring");
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+const session = require("express-session");
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "your-secret-key",
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+      secure: false, // set to true if using HTTPS
+      maxAge: 24 * 60 * 60 * 1000, // e.g., 1 day
+    },
+  })
+);
+
 app.use(cors());
 app.use(express.json());
 
@@ -15,13 +29,16 @@ app.use(express.json());
 
 // Start Riot OAuth flow.
 app.get("/auth/riot", (req, res) => {
-  const clientId = process.env.RIOT_RSO_CLIENT_ID; // Your 6-digit App ID
-  const redirectUri = process.env.RIOT_RSO_REDIRECT_URI; // e.g., "https://valorant-nextgen.vercel.app/auth/riot/callback"
-  // In production, generate and store a unique random state (here hard-coded for demo).
-  const state = "SOME_RANDOM_STATE";
+  const clientId = process.env.RIOT_RSO_CLIENT_ID;
+  const redirectUri = process.env.RIOT_RSO_REDIRECT_URI;
+  // Generate a random state and store it in session for CSRF protection
+  const state = crypto.randomBytes(16).toString("hex");
+  req.session.rsoState = state;
+
+  // Define scopes as needed (here "openid account" is used as an example)
   const scope = "openid account";
 
-  // Build the Riot OAuth authorization URL.
+  // Build the Riot OAuth authorization URL
   const authUrl =
     "https://auth.riotgames.com/authorize?" +
     querystring.stringify({
@@ -32,17 +49,22 @@ app.get("/auth/riot", (req, res) => {
       state: state,
     });
 
+  // Redirect the user to Riot's sign in page
   res.redirect(authUrl);
 });
 
-// Callback endpoint – exchange authorization code for tokens.
 app.get("/auth/riot/callback", async (req, res) => {
   const { code, state } = req.query;
-  if (!code) {
-    return res.status(400).send("Error: Missing authorization code.");
+
+  // Verify the state parameter to prevent CSRF attacks
+  if (!state || state !== req.session.rsoState) {
+    return res.status(400).send("Invalid state parameter.");
   }
+  // Clear the stored state now that it’s been used
+  delete req.session.rsoState;
 
   try {
+    // Exchange the authorization code for tokens
     const tokenResponse = await axios.post(
       "https://auth.riotgames.com/token",
       querystring.stringify({
@@ -59,16 +81,13 @@ app.get("/auth/riot/callback", async (req, res) => {
       }
     );
 
-    // Extract tokens from the response.
-    const tokens = {
-      access_token: tokenResponse.data.access_token,
-      id_token: tokenResponse.data.id_token,
-      refresh_token: tokenResponse.data.refresh_token,
-    };
+    // Save the tokens to the session (you can later save them to a database if needed)
+    req.session.tokens = tokenResponse.data;
 
-    // TODO: Save tokens and/or set a session cookie to record that the user has opted in.
-    // For demonstration, redirect to a dashboard with the access token.
-    res.redirect(`/dashboard?token=${tokens.access_token}`);
+    // Optionally, verify the id_token here using jwt.verify (see next section)
+
+    // Redirect to your dashboard (or another protected page)
+    res.redirect("/dashboard");
   } catch (error) {
     console.error("Error during token exchange:", error.message);
     res.status(500).send("Authentication failed, please try again.");
@@ -77,6 +96,9 @@ app.get("/auth/riot/callback", async (req, res) => {
 
 // Logout endpoint – redirect user to Riot’s logout URL.
 app.get("/auth/riot/logout", (req, res) => {
+  // Clear the session
+  req.session.destroy();
+
   const postLogoutRedirectUri = process.env.RIOT_RSO_POST_LOGOUT_URI;
   res.redirect(
     `https://auth.riotgames.com/logout?redirect_uri=${encodeURIComponent(

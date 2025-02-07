@@ -14,7 +14,8 @@ export default function Dashboard() {
           <p>You are now signed in with Riot Sign On.</p>
           <p className="mt-4 font-mono text-xs break-words">{token}</p>
           <p className="mt-2 text-sm">
-            This is your dashboard. (Implement further functionality as needed.)
+            mt-2 dashbaord placeholder text. waiting on RSO access to properly
+            implement
           </p>
         </div>
       ) : (

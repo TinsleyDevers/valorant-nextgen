@@ -46,8 +46,9 @@ export default function Home() {
   const [searchedProfile, setSearchedProfile] = useState("");
   const [profileNotLoggedIn, setProfileNotLoggedIn] = useState(false);
 
-  // Use API_URL from the environment; default to localhost if not set.
-  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+  // Use API_URL from the environment; default to render.com if not set.
+  const API_URL =
+    process.env.REACT_APP_API_URL || "https://valorant-nextgen.onrender.com";
   const modalRef = useRef(null);
 
   // Minimaps for heatmap background.

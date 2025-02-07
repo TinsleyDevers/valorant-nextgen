@@ -41,17 +41,17 @@ export default function Home() {
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [showRankedStats, setShowRankedStats] = useState(false);
 
-  // New state for profile search
+  // State for profile search.
   const [searchInput, setSearchInput] = useState("");
   const [searchedProfile, setSearchedProfile] = useState("");
   const [profileNotLoggedIn, setProfileNotLoggedIn] = useState(false);
 
-  // Use API_URL from the environment; default to render.com if not set.
+  // Use API_URL from the environment.
   const API_URL =
     process.env.REACT_APP_API_URL || "https://valorant-nextgen.onrender.com";
   const modalRef = useRef(null);
 
-  // Minimaps for heatmap background.
+  // Minimaps.
   const minimaps = {
     Ascent:
       "https://static.wikia.nocookie.net/valorant/images/0/04/Ascent_minimap.png",
@@ -62,7 +62,7 @@ export default function Home() {
       "https://static.wikia.nocookie.net/valorant/images/c/cf/Icebox_minimap.png",
   };
 
-  // Fetch matches and leaderboard on mount.
+  // Fetch matches and leaderboard.
   useEffect(() => {
     (async () => {
       try {
@@ -191,14 +191,12 @@ export default function Home() {
   // Profile search handler.
   const handleProfileSearch = (e) => {
     e.preventDefault();
-    // Expect Riot ID format "username#tagline" (LATER CHANGE TO BE MORE RESPONSIVE / INTEARCTIVE / VISUAL ie. red border if invalid)
     if (!searchInput.includes("#")) {
       alert("Please enter a valid Riot ID (e.g., player#NA1).");
       return;
     }
     setSearchedProfile(searchInput);
     const [username, tagline] = searchInput.split("#");
-    // Check if the profile exists in our tracked leaderboard.
     const found = leaderboard.find(
       (p) =>
         p.name.toLowerCase() === username.toLowerCase() &&
@@ -207,7 +205,7 @@ export default function Home() {
     if (!found) {
       setProfileNotLoggedIn(true);
     } else {
-      // If found, for this demo we'll redirect to RSO login.
+      // Redirect to Riot sign-in flow.
       window.location.href = "/auth/riot";
     }
   };
@@ -398,17 +396,17 @@ export default function Home() {
                                             K/D:
                                           </span>{" "}
                                           {player.kills}/{player.deaths}{" "}
-                                          <span className="mx-1">|</span>
+                                          <span className="mx-1">|</span>{" "}
                                           <span className="font-semibold">
                                             KD:
                                           </span>{" "}
                                           {player.kdRatio}{" "}
-                                          <span className="mx-1">|</span>
+                                          <span className="mx-1">|</span>{" "}
                                           <span className="font-semibold">
                                             ACS:
                                           </span>{" "}
                                           {player.acs}{" "}
-                                          <span className="mx-1">|</span>
+                                          <span className="mx-1">|</span>{" "}
                                           <span className="font-semibold">
                                             KAST:
                                           </span>{" "}
@@ -429,7 +427,7 @@ export default function Home() {
               })}
             </motion.div>
           )}
-          {/* New Profile Explorer Section */}
+          {/* Profile Explorer Section */}
           <div className="mt-12">
             <div className="bg-gray-800 rounded-lg p-8 text-center shadow-md">
               <h2 className="text-3xl font-bold text-gray-100 mb-2">
@@ -479,7 +477,7 @@ export default function Home() {
                   Make Private
                 </a>
               </p>
-              {/* If the profile is not found, show an additional prompt */}
+              {/* If profile not found, prompt to sign in */}
               {profileNotLoggedIn && (
                 <div className="mt-4 text-center">
                   <p className="text-lg text-red-400">
@@ -499,11 +497,11 @@ export default function Home() {
                   <p className="text-xs text-gray-500 mt-4">
                     Disclaimer: You must sign in with Riot to opt in for
                     displaying your stats. Your data will only be shown if you
-                    have logged into our service.{" "}
+                    have logged into our service.
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    you may opt out at any time by clicking the "Make Private"
-                    link shown above.{" "}
+                    You may opt out at any time by clicking the "Make Private"
+                    link above.
                   </p>
                 </div>
               )}

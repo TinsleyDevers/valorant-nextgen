@@ -7,6 +7,7 @@ import TermsOfService from "./pages/TermsOfService";
 import About from "./pages/About";
 import News from "./pages/News";
 import Schedule from "./pages/Schedule";
+import Dashboard from "./pages/Dashboard";
 import { motion } from "framer-motion";
 
 function App() {

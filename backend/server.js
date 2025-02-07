@@ -11,21 +11,22 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// ----- RSO OAuth Endpoints ----- //
+// ----- Riot Sign On (RSO) Endpoints ----- //
 
-// Start Riot OAuth (RSO) flow.
+// Start Riot OAuth flow.
 app.get("/auth/riot", (req, res) => {
-  const clientId = process.env.RIOT_RSO_CLIENT_ID; // e.g. "123456" (your 6-digit App ID)
-  const redirectUrl = process.env.RIOT_RSO_REDIRECT_URL; // e.g. "https://valorant-nextgen.vercel.app/auth/riot/callback"
-  // In production, generate a unique random state and store it in a session.
+  const clientId = process.env.RIOT_RSO_CLIENT_ID; // Your 6-digit App ID
+  const redirectUri = process.env.RIOT_RSO_REDIRECT_URI; // e.g., "https://valorant-nextgen.vercel.app/auth/riot/callback"
+  // In production, generate and store a unique random state (here hard-coded for demo).
   const state = "SOME_RANDOM_STATE";
   const scope = "openid account";
 
+  // Build the Riot OAuth authorization URL.
   const authUrl =
     "https://auth.riotgames.com/authorize?" +
     querystring.stringify({
       client_id: clientId,
-      redirect_url: redirectUrl,
+      redirect_uri: redirectUri,
       response_type: "code",
       scope: scope,
       state: state,
@@ -34,7 +35,7 @@ app.get("/auth/riot", (req, res) => {
   res.redirect(authUrl);
 });
 
-// Callback endpoint – Riot will redirect here after sign‑in.
+// Callback endpoint – exchange authorization code for tokens.
 app.get("/auth/riot/callback", async (req, res) => {
   const { code, state } = req.query;
   if (!code) {
@@ -47,7 +48,7 @@ app.get("/auth/riot/callback", async (req, res) => {
       querystring.stringify({
         grant_type: "authorization_code",
         code: code,
-        redirect_url: process.env.RIOT_RSO_REDIRECT_URL,
+        redirect_uri: process.env.RIOT_RSO_REDIRECT_URI,
         client_id: process.env.RIOT_RSO_CLIENT_ID,
         client_secret: process.env.RIOT_RSO_CLIENT_SECRET,
       }),
@@ -58,29 +59,33 @@ app.get("/auth/riot/callback", async (req, res) => {
       }
     );
 
-    const accessToken = tokenResponse.data.access_token;
-    const idToken = tokenResponse.data.id_token;
-    // (Optionally decode idToken with a JWT library to get user info.)
-    // TODO: Save user session here so you know the user has opted in.
+    // Extract tokens from the response.
+    const tokens = {
+      access_token: tokenResponse.data.access_token,
+      id_token: tokenResponse.data.id_token,
+      refresh_token: tokenResponse.data.refresh_token,
+    };
 
-    // Redirect to a post‑login page (for example, a dashboard) while optionally passing the token.
-    res.redirect(`/dashboard?token=${accessToken}`);
+    // TODO: Save tokens and/or set a session cookie to record that the user has opted in.
+    // For demonstration, redirect to a dashboard with the access token.
+    res.redirect(`/dashboard?token=${tokens.access_token}`);
   } catch (error) {
-    console.error("Error during RSO token exchange:", error.message);
+    console.error("Error during token exchange:", error.message);
     res.status(500).send("Authentication failed, please try again.");
   }
 });
 
-// New Logout endpoint – redirect user to Riot’s logout URL with your post‑logout redirect.
+// Logout endpoint – redirect user to Riot’s logout URL.
 app.get("/auth/riot/logout", (req, res) => {
-  // If you are managing sessions, clear the session here.
-  const postLogoutRedirectUrl = process.env.RIOT_RSO_POST_LOGOUT_URL; // e.g. "https://valorant-nextgen.vercel.app/"
+  const postLogoutRedirectUri = process.env.RIOT_RSO_POST_LOGOUT_URI;
   res.redirect(
-    `https://auth.riotgames.com/logout?redirect_url=${encodeURLComponent(
-      postLogoutRedirectUrl
+    `https://auth.riotgames.com/logout?redirect_uri=${encodeURIComponent(
+      postLogoutRedirectUri
     )}`
   );
 });
+
+// ----- End RSO Endpoints ----- //
 
 app.get("/", (req, res) => {
   res.send("Server is running!");
@@ -415,14 +420,14 @@ const allMatches = [
 ];
 
 // return matches
-app.get("/api/matches", (req, res) =>
-  res.json({ success: true, data: allMatches })
-);
+app.get("/api/matches", (req, res) => {
+  res.json({ success: true, data: allMatches });
+});
 
-// ADVANCED stats
+// /api/match/:matchId/player-stats endpoint (dummy implementation)
 app.get("/api/match/:matchId/player-stats", (req, res) => {
-  const { matchId } = req.params,
-    { name, tagline } = req.query;
+  const { matchId } = req.params;
+  const { name, tagline } = req.query;
   const match = allMatches.find((m) => m.matchId === matchId);
   if (!match) return res.status(404).json({ error: "Match not found" });
 
@@ -441,16 +446,11 @@ app.get("/api/match/:matchId/player-stats", (req, res) => {
   const enemyTeam = match.teams.find((t) => t !== foundTeam);
   const isVictory =
     foundTeam.roundsWon > enemyTeam.roundsWon ? "Victory" : "Defeat";
-
-  // compute match score and total rounds
   const matchScore = `${foundTeam.roundsWon} - ${enemyTeam.roundsWon}`;
   const totalRounds = foundTeam.roundsWon + enemyTeam.roundsWon;
-
-  // kills/deaths match the listing
   const kills = foundPlayer.kills,
     deaths = foundPlayer.deaths;
 
-  // write advanced stats
   const adv = {
     mapPlayed: match.map,
     matchOutcome: isVictory,
@@ -525,34 +525,6 @@ app.get("/api/match/:matchId/player-stats", (req, res) => {
         avgDamage: 118.9,
       },
     ],
-    killsDetail: [
-      {
-        victim: enemyTeam.players[0].name,
-        time: "01:23",
-        mapLocation: "A Site",
-        shotDistribution: { head: 1, body: 2, leg: 0 },
-        multiKill: 2,
-      },
-    ],
-    deathDetail: [
-      {
-        killer: enemyTeam.players[0].name,
-        time: "03:37",
-        mapLocation: "B Site",
-        shotDistribution: { head: 1, body: 1, leg: 0 },
-      },
-    ],
-    economy: [
-      { round: 1, creditsStart: 800, weaponBuy: "Ghost", outcome: "win" },
-      { round: 2, creditsStart: 2100, weaponBuy: "Spectre", outcome: "lose" },
-      { round: 3, creditsStart: 3900, weaponBuy: "Vandal", outcome: "win" },
-    ],
-    multiKillStats: { twoK: 5, threeK: 2, fourK: 0, fiveK: 0 },
-    killLocations: [
-      { x: 300, y: 420 },
-      { x: 650, y: 200 },
-    ],
-    deathLocations: [{ x: 500, y: 550 }],
   };
 
   res.json({
@@ -563,20 +535,6 @@ app.get("/api/match/:matchId/player-stats", (req, res) => {
   });
 });
 
-// leaderboard
-app.get("/api/leaderboard", (req, res) => {
-  res.json({
-    success: true,
-    data: [
-      { name: "AlphaA3", tagline: "NJAA", rank: "Radiant #500" },
-      { name: "GammaG3", tagline: "NJAG", rank: "Immortal 2 #1200" },
-      { name: "AvengerA2", tagline: "SECA", rank: "Immortal 1 #1900" },
-      { name: "HeroH1", tagline: "SECH", rank: "Radiant #300" },
-    ],
-  });
-});
-
-// rank stats
 app.get("/api/ranked-stats", (req, res) => {
   const { name, tagline } = req.query;
   res.json({
@@ -592,17 +550,15 @@ app.get("/api/ranked-stats", (req, res) => {
   });
 });
 
-// Riot example personal key usage for showcase.
 app.get("/api/account", async (req, res) => {
   try {
     const { username, tagline } = req.query;
     if (!username || !tagline)
       return res.status(400).json({ error: "username & tagline required" });
-
     const region = "americas";
-    const url = `https://${region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURLComponent(
+    const url = `https://${region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(
       username
-    )}/${encodeURLComponent(tagline)}`;
+    )}/${encodeURIComponent(tagline)}`;
     const response = await axios.get(url, {
       headers: { "X-Riot-Token": process.env.RIOT_API_KEY },
     });

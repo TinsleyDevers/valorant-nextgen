@@ -1,3 +1,4 @@
+// App.js
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import Home from "./pages/Home";
@@ -96,8 +97,7 @@ function App() {
           </div>
           <p className="mt-2">© 2025 Tinsley Devers — All rights reserved.</p>
           <p className="text-gray-500 text-xs mt-1">
-            This site is a placeholder demo, not affiliated with or endorsed by
-            Riot Games.
+            This site is not affiliated with or endorsed by Riot Games.
           </p>
         </footer>
       </div>

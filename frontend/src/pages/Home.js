@@ -1,4 +1,4 @@
-// Home.js
+// src/pages/Home.js
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,7 +21,7 @@ function StatBox({ label, value, color = "teal" }) {
       whileHover={{ scale: 1.05 }}
       className="p-4 bg-gray-800 rounded shadow-lg hover:bg-gray-700 transition relative overflow-hidden"
     >
-      <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-transparent via-white/10 to-transparent blur-xl opacity-0 hover:opacity-10 transition" />
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-transparent via-white/10 to-transparent blur-xl opacity-0 hover:opacity-10 transition"></div>
       <p className="text-xs text-gray-400 uppercase tracking-wider">{label}</p>
       <p className={`text-2xl font-bold ${colorClass} mt-1`}>{value}</p>
     </motion.div>
@@ -29,7 +29,7 @@ function StatBox({ label, value, color = "teal" }) {
 }
 
 export default function Home() {
-  // States
+  // State variables
   const [isLoading, setIsLoading] = useState(true);
   const [matches, setMatches] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
@@ -41,16 +41,16 @@ export default function Home() {
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [showRankedStats, setShowRankedStats] = useState(false);
 
+  // New state for profile search
+  const [searchInput, setSearchInput] = useState("");
+  const [searchedProfile, setSearchedProfile] = useState("");
+  const [profileNotLoggedIn, setProfileNotLoggedIn] = useState(false);
+
+  // Use API_URL from the environment; default to localhost if not set.
+  const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
   const modalRef = useRef(null);
 
-  // Riot dev key demo states
-  const [riotUsername, setRiotUsername] = useState("ZambieD");
-  const [riotTagline, setRiotTagline] = useState("whale");
-  const [riotAccountData, setRiotAccountData] = useState(null);
-  const [riotError, setRiotError] = useState("");
-  const [loadingAccount, setLoadingAccount] = useState(false);
-
-  // Minimaps
+  // Minimaps for heatmap background.
   const minimaps = {
     Ascent:
       "https://static.wikia.nocookie.net/valorant/images/0/04/Ascent_minimap.png",
@@ -61,14 +61,14 @@ export default function Home() {
       "https://static.wikia.nocookie.net/valorant/images/c/cf/Icebox_minimap.png",
   };
 
-  // Fetch data
+  // Fetch matches and leaderboard on mount.
   useEffect(() => {
     (async () => {
       try {
         setIsLoading(true);
         const [resM, resLB] = await Promise.all([
-          axios.get("https://valorant-nextgen.onrender.com/api/matches"),
-          axios.get("https://valorant-nextgen.onrender.com/api/leaderboard"),
+          axios.get(`${API_URL}/api/matches`),
+          axios.get(`${API_URL}/api/leaderboard`),
         ]);
         setMatches(resM.data.data);
         setLeaderboard(resLB.data.data);
@@ -86,17 +86,14 @@ export default function Home() {
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [API_URL]);
 
-  // Animation Variants
+  // Animation variants.
   const leagueButtonVariant = {
     rest: { scale: 1, opacity: 0.8 },
-    hover: {
-      scale: 1.05,
-      opacity: 1,
-      transition: { duration: 0.2 },
-    },
+    hover: { scale: 1.05, opacity: 1, transition: { duration: 0.2 } },
   };
+
   const matchCardVariant = {
     rest: { scale: 1, opacity: 1 },
     hover: {
@@ -106,19 +103,21 @@ export default function Home() {
       transition: { duration: 0.3 },
     },
   };
+
   const matchesContainerVariants = {
     hidden: { opacity: 0 },
     show: { opacity: 1, transition: { staggerChildren: 0.05 } },
   };
+
   const matchItemVariants = {
     hidden: { opacity: 0, scale: 0.95 },
     show: { opacity: 1, scale: 1 },
   };
 
-  // Handlers
+  // Handler functions.
   const handleLeagueToggle = (league) => {
     setSelectedLeague(selectedLeague === league ? null : league);
-    setExpandedMatchIds([]); // reset expansions
+    setExpandedMatchIds([]);
   };
 
   const toggleMatchExpand = (matchId) => {
@@ -143,23 +142,26 @@ export default function Home() {
       )
     : matches;
 
-  // Leaderboard rank
   const getPlayerRank = (n, t) => {
-    const lb = leaderboard.find((p) => p.name === n && p.tagline === t);
+    const lb = leaderboard.find(
+      (p) =>
+        p.name.toLowerCase() === n.toLowerCase() &&
+        p.tagline.toLowerCase() === t.toLowerCase()
+    );
     return lb ? lb.rank : null;
   };
+
   const isRadiantOrImmortal = (rankStr) =>
     rankStr &&
     (rankStr.toLowerCase().includes("immortal") ||
       rankStr.toLowerCase().includes("radiant"));
 
-  // Player advanced stats
   const handlePlayerClick = async (matchId, player) => {
     closeModal();
     setSelectedPlayer(player);
     try {
       const res = await axios.get(
-        `https://valorant-nextgen.onrender.com/api/match/${matchId}/player-stats`,
+        `${API_URL}/api/match/${matchId}/player-stats`,
         {
           params: { name: player.name, tagline: player.tagline },
         }
@@ -173,10 +175,9 @@ export default function Home() {
   const handleToggleRankedStats = async (n, t) => {
     if (!showRankedStats) {
       try {
-        const r = await axios.get(
-          "https://valorant-nextgen.onrender.com/api/ranked-stats",
-          { params: { name: n, tagline: t } }
-        );
+        const r = await axios.get(`${API_URL}/api/ranked-stats`, {
+          params: { name: n, tagline: t },
+        });
         setSelectedRankedStats(r.data.rankedStats);
       } catch {}
       setShowRankedStats(true);
@@ -186,41 +187,39 @@ export default function Home() {
     }
   };
 
-  // Riot dev key demo
-  const handleRiotLookup = async (e) => {
+  // Profile search handler.
+  const handleProfileSearch = (e) => {
     e.preventDefault();
-    setRiotError("");
-    setRiotAccountData(null);
-    setLoadingAccount(true);
-    try {
-      const r = await axios.get(
-        "https://valorant-nextgen.onrender.com/api/account",
-        {
-          params: { username: riotUsername, tagline: riotTagline },
-        }
-      );
-      setRiotAccountData(r.data.data);
-    } catch (err) {
-      console.error(err);
-      setRiotError(
-        "Error fetching from Riot Developer API. (Rate limited/Key expired/Disabled on Vercel demo)"
-      );
+    // Expect Riot ID format "username#tagline" (LATER CHANGE TO BE MORE RESPONSIVE / INTEARCTIVE / VISUAL ie. red border if invalid)
+    if (!searchInput.includes("#")) {
+      alert("Please enter a valid Riot ID (e.g., player#NA1).");
+      return;
     }
-    setLoadingAccount(false);
+    setSearchedProfile(searchInput);
+    const [username, tagline] = searchInput.split("#");
+    // Check if the profile exists in our tracked leaderboard.
+    const found = leaderboard.find(
+      (p) =>
+        p.name.toLowerCase() === username.toLowerCase() &&
+        p.tagline.toLowerCase() === tagline.toLowerCase()
+    );
+    if (!found) {
+      setProfileNotLoggedIn(true);
+    } else {
+      // If found, for this demo we'll redirect to RSO login.
+      window.location.href = "/auth/riot";
+    }
   };
 
   return (
     <>
       <LoadingScreen isLoading={isLoading} />
-
       {!isLoading && (
         <div className="container mx-auto py-12 px-4">
-          {/* Title */}
+          {/* League Matches Section */}
           <h1 className="text-4xl font-extrabold text-gray-100 text-center mb-8">
             Valorant Collegiate Next-Gen
           </h1>
-
-          {/* League Buttons */}
           <div className="flex justify-center space-x-4 mb-12">
             <motion.button
               variants={leagueButtonVariant}
@@ -249,8 +248,6 @@ export default function Home() {
               Southern Esports Conference
             </motion.button>
           </div>
-
-          {/* Match Cards */}
           {filteredMatches.length === 0 ? (
             <p className="text-center text-gray-400">
               {selectedLeague
@@ -270,10 +267,8 @@ export default function Home() {
                 const leftWinner = t0 > t1;
                 const rightWinner = t1 > t0;
                 const isExpanded = expandedMatchIds.includes(match.matchId);
-
                 return (
                   <motion.div key={match.matchId} variants={matchItemVariants}>
-                    {/* Match Card */}
                     <motion.div
                       variants={matchCardVariant}
                       initial="rest"
@@ -286,7 +281,6 @@ export default function Home() {
                         style={{ backgroundImage: `url(${match.mapImage})` }}
                       ></div>
                       <div className="absolute inset-0 bg-black bg-opacity-60"></div>
-
                       <div className="relative p-6">
                         <h3 className="text-xl font-bold text-gray-100 mb-2">
                           {match.teams[0].name} vs {match.teams[1].name}
@@ -336,8 +330,6 @@ export default function Home() {
                         </button>
                       </div>
                     </motion.div>
-
-                    {/* Expanded Match Details */}
                     <AnimatePresence>
                       {isExpanded && (
                         <motion.div
@@ -356,7 +348,6 @@ export default function Home() {
                                 <h4 className="font-semibold text-lg mb-3 text-gray-200 border-b border-gray-700 pb-2">
                                   {team.name}
                                 </h4>
-
                                 <div className="space-y-3">
                                   {team.players.map((player, i) => {
                                     const rank = getPlayerRank(
@@ -364,7 +355,6 @@ export default function Home() {
                                       player.tagline
                                     );
                                     const special = isRadiantOrImmortal(rank);
-
                                     let containerClass =
                                       "bg-gray-700 p-3 rounded hover:bg-gray-600 transition cursor-pointer relative";
                                     let highlightStyle = "";
@@ -381,7 +371,6 @@ export default function Home() {
                                           "border-l-4 border-pink-300 pl-3";
                                       }
                                     }
-
                                     return (
                                       <motion.div
                                         key={i}
@@ -412,12 +401,12 @@ export default function Home() {
                                           <span className="font-semibold">
                                             KD:
                                           </span>{" "}
-                                          {player.kdRatio}
+                                          {player.kdRatio}{" "}
                                           <span className="mx-1">|</span>
                                           <span className="font-semibold">
                                             ACS:
                                           </span>{" "}
-                                          {player.acs}
+                                          {player.acs}{" "}
                                           <span className="mx-1">|</span>
                                           <span className="font-semibold">
                                             KAST:
@@ -439,70 +428,88 @@ export default function Home() {
               })}
             </motion.div>
           )}
-
-          {/* Riot Developer Key Demo */}
+          {/* New Profile Explorer Section */}
           <div className="mt-12">
-            <h2 className="text-2xl font-semibold mb-2 text-gray-100">
-              Riot Developer Key Demo
-            </h2>
-            <p className="text-sm text-gray-400 mb-3">
-              Look up a player's PUUID via the official Riot API. (DISABLED ON
-              THE LIVE DEMO SITE)
-            </p>
-            <form
-              onSubmit={handleRiotLookup}
-              className="flex flex-col md:flex-row gap-2 mb-4"
-            >
-              <input
-                type="text"
-                placeholder="Username"
-                value={riotUsername}
-                onChange={(e) => setRiotUsername(e.target.value)}
-                className="flex-1 px-3 py-2 rounded bg-gray-700 border border-gray-600 focus:outline-none text-white"
-              />
-              <input
-                type="text"
-                placeholder="Tagline"
-                value={riotTagline}
-                onChange={(e) => setRiotTagline(e.target.value)}
-                className="flex-1 px-3 py-2 rounded bg-gray-700 border border-gray-600 focus:outline-none text-white"
-              />
-              <button
-                type="submit"
-                className="bg-red-600 hover:bg-red-500 px-4 py-2 rounded text-white font-semibold"
+            <div className="bg-gray-800 rounded-lg p-8 text-center shadow-md">
+              <h2 className="text-3xl font-bold text-gray-100 mb-2">
+                Profile Explorer
+              </h2>
+              <p className="text-lg text-gray-300 mb-4">
+                Search for a collegiate profile by entering a Riot ID (e.g.,{" "}
+                <span className="font-semibold">player#NA1</span>) or choose one
+                from the suggestions.
+              </p>
+              <form
+                onSubmit={handleProfileSearch}
+                className="flex flex-col md:flex-row items-center justify-center gap-2"
               >
-                Fetch PUUID
-              </button>
-            </form>
-            {riotError && <p className="text-red-400 mb-2">{riotError}</p>}
-            {loadingAccount ? (
-              <div className="bg-gray-800 p-4 rounded animate-pulse">
-                <div className="h-4 bg-gray-700 w-3/4 mb-2 rounded"></div>
-                <div className="h-4 bg-gray-700 w-2/3 mb-2 rounded"></div>
-              </div>
-            ) : (
-              riotAccountData && (
-                <div className="bg-gray-800 p-4 rounded">
-                  <h3 className="font-semibold text-lg mb-2 text-gray-100">
-                    Account Data
-                  </h3>
-                  <p className="text-gray-300">
-                    PUUID: {riotAccountData.puuid}
+                <input
+                  type="search"
+                  placeholder="Find a profile, e.g., player#NA1 or Sage"
+                  className="w-full md:w-1/2 px-4 py-2 rounded border border-gray-600 bg-gray-600 text-gray-100 placeholder-gray-400 focus:outline-none"
+                  list="profile-options"
+                  value={searchInput}
+                  onChange={(e) => {
+                    setSearchInput(e.target.value);
+                    setProfileNotLoggedIn(false);
+                  }}
+                />
+                <datalist id="profile-options">
+                  <option value="ZambieD#whale" />
+                  <option value="AlphaA1#NJAA" />
+                  <option value="AlphaA2#NJAA" />
+                  <option value="BetaB1#NJAB" />
+                  <option value="BetaB2#NJAB" />
+                </datalist>
+                <button
+                  type="submit"
+                  className="mt-2 md:mt-0 px-6 py-2 bg-blue-600 hover:bg-blue-500 rounded text-white font-semibold"
+                >
+                  Search Profile
+                </button>
+              </form>
+              {/* Disclaimer with inline "Make Private" link */}
+              <p className="text-xs text-gray-500 mt-4">
+                By signing in, you acknowledge that your profile becomes public.{" "}
+                <a
+                  href="/auth/riot?private=true"
+                  className="underline hover:text-blue-400"
+                >
+                  Make Private
+                </a>
+              </p>
+              {/* If the profile is not found, show an additional prompt */}
+              {profileNotLoggedIn && (
+                <div className="mt-4 text-center">
+                  <p className="text-lg text-red-400">
+                    The profile{" "}
+                    <span className="font-bold">{searchedProfile}</span> has not
+                    been logged in.
                   </p>
-                  <p className="text-gray-300">
-                    GameName: {riotAccountData.gameName}
+                  <p className="text-sm text-gray-400 mt-2">
+                    Is this your account?{" "}
+                    <a
+                      href="/auth/riot?private=true"
+                      className="underline hover:text-blue-400"
+                    >
+                      Sign in to claim it.
+                    </a>
                   </p>
-                  <p className="text-gray-300">
-                    TagLine: {riotAccountData.tagLine}
+                  <p className="text-xs text-gray-500 mt-4">
+                    Disclaimer: You must sign in with Riot to opt in for
+                    displaying your stats. Your data will only be shown if you
+                    have logged into our service.{" "}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    you may opt out at any time by clicking the "Make Private"
+                    link shown above.{" "}
                   </p>
                 </div>
-              )
-            )}
+              )}
+            </div>
           </div>
         </div>
       )}
-
-      {/* Player Stats */}
       <AnimatePresence>
         {selectedPlayer && selectedPlayerStats && (
           <motion.div
@@ -520,15 +527,12 @@ export default function Home() {
               transition={{ duration: 0.4 }}
               className="bg-gradient-to-br from-gray-800 via-gray-900 to-black rounded-2xl shadow-2xl p-8 relative max-w-5xl w-full overflow-y-auto max-h-[90vh]"
             >
-              {/* Close Button */}
               <button
                 onClick={closeModal}
                 className="absolute top-4 right-4 text-gray-400 hover:text-gray-100 text-xl"
               >
                 ✕
               </button>
-
-              {/* Header Section */}
               <div className="flex flex-wrap md:flex-nowrap items-center justify-between pb-6 border-b border-gray-700 gap-4">
                 <div>
                   <p className="text-sm text-gray-500">
@@ -558,8 +562,6 @@ export default function Home() {
                   </p>
                 </div>
               </div>
-
-              {/* Advanced Stats */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
                 <StatBox
                   label="Combat Score"
@@ -622,8 +624,6 @@ export default function Home() {
                   color="yellow"
                 />
               </div>
-
-              {/* Match Details */}
               <div className="bg-gray-700 p-4 rounded-lg mt-8">
                 <h3 className="text-2xl font-bold text-white mb-4">
                   Match Details
@@ -643,10 +643,7 @@ export default function Home() {
                     : selectedPlayerStats.enemyTeamName}
                 </p>
               </div>
-
-              {/* Teams */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                {/* "My" (selected) Team */}
                 <div className="bg-gray-800 p-4 rounded-lg shadow-md">
                   <h4 className="text-xl font-bold text-gray-100 mb-3 border-b border-gray-700 pb-2">
                     {selectedPlayerStats.myTeamName}
@@ -667,7 +664,6 @@ export default function Home() {
                     </motion.div>
                   ))}
                 </div>
-                {/* Enemy Team */}
                 <div className="bg-gray-800 p-4 rounded-lg shadow-md">
                   <h4 className="text-xl font-bold text-gray-100 mb-3 border-b border-gray-700 pb-2">
                     {selectedPlayerStats.enemyTeamName}
@@ -689,129 +685,50 @@ export default function Home() {
                   ))}
                 </div>
               </div>
-
-              {/* Weapon Stats */}
-              {selectedPlayerStats.weaponStats?.length > 0 && (
-                <div className="mt-10">
-                  <h3 className="text-2xl font-bold text-white mb-4">
-                    Weapon Stats
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {selectedPlayerStats.weaponStats.map((weapon, idx) => (
-                      <motion.div
-                        key={idx}
-                        initial={{ y: 20, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: idx * 0.1 }}
-                        className="bg-gray-800 p-6 rounded-lg shadow-lg hover:bg-gray-700 transition relative"
-                      >
-                        <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-transparent via-white/5 to-transparent blur opacity-0 hover:opacity-10 transition" />
-                        <h4 className="text-xl font-semibold text-white mb-2">
-                          {weapon.weaponName}
-                        </h4>
-                        <p className="text-gray-300">
-                          <span className="font-bold text-green-400">
-                            Kills:
-                          </span>{" "}
-                          {weapon.totalKills}
-                        </p>
-                        <p className="text-gray-300">
-                          <span className="font-bold text-yellow-400">
-                            Headshot %:
-                          </span>{" "}
-                          {weapon.headshotPercent.toFixed(1)}%
-                        </p>
-                        <p className="text-gray-300">
-                          <span className="font-bold text-blue-400">
-                            Avg. Damage:
-                          </span>{" "}
-                          {weapon.avgDamage.toFixed(1)}
-                        </p>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Ranked Stats */}
-              {showRankedStats && selectedRankedStats && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="mt-8 p-4 bg-gray-700 rounded-lg"
-                >
-                  <h3 className="text-2xl font-bold text-white mb-4">
-                    Ranked Stats
-                  </h3>
-                  <p className="text-gray-300 mb-1">
-                    <span className="font-bold text-teal-300">Rank:</span>{" "}
-                    {selectedRankedStats.rank}
-                  </p>
-                  <p className="text-gray-300 mb-1">
-                    <span className="font-bold text-teal-300">RR:</span>{" "}
-                    {selectedRankedStats.rr}
-                  </p>
-                  <p className="text-gray-300 mb-1">
-                    <span className="font-bold text-teal-300">Wins:</span>{" "}
-                    {selectedRankedStats.wins}
-                  </p>
-                  <p className="text-gray-300 mb-1">
-                    <span className="font-bold text-teal-300">Losses:</span>{" "}
-                    {selectedRankedStats.losses}
-                  </p>
-                  <p className="text-gray-300">
-                    <span className="font-bold text-teal-300">
-                      Recent Performance:
-                    </span>{" "}
-                    {selectedRankedStats.recentPerformance.join(", ")}
-                  </p>
-                </motion.div>
-              )}
-
-              {/* Heatmap */}
-              {showHeatmap && (
-                <div className="mt-10 relative">
-                  <h3 className="text-2xl font-bold text-white mb-4">
-                    Heatmap
-                  </h3>
-                  <div
-                    className="w-full h-64 rounded-lg shadow-lg overflow-hidden relative"
-                    style={{
-                      background: `url('${
-                        minimaps[selectedPlayerStats.mapPlayed] ||
-                        "/map-heatmap.png"
-                      }') no-repeat center center / cover`,
-                    }}
-                  >
-                    {selectedPlayerStats.killLocations.map((loc, idx) => (
-                      <div
-                        key={idx}
-                        className="absolute w-4 h-4 bg-green-500 rounded-full animate-pulse"
-                        style={{
-                          left: `${loc.x / 10}%`,
-                          top: `${loc.y / 10}%`,
-                          transform: "translate(-50%, -50%)",
-                        }}
-                      />
-                    ))}
-                    {selectedPlayerStats.deathLocations.map((loc, idx) => (
-                      <div
-                        key={idx}
-                        className="absolute w-4 h-4 bg-red-500 rounded-full animate-pulse"
-                        style={{
-                          left: `${loc.x / 10}%`,
-                          top: `${loc.y / 10}%`,
-                          transform: "translate(-50%, -50%)",
-                        }}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Toggle Buttons */}
+              <AnimatePresence>
+                {selectedPlayerStats.weaponStats &&
+                  selectedPlayerStats.weaponStats.length > 0 && (
+                    <div className="mt-10">
+                      <h3 className="text-2xl font-bold text-white mb-4">
+                        Weapon Stats
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {selectedPlayerStats.weaponStats.map((weapon, idx) => (
+                          <motion.div
+                            key={idx}
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: idx * 0.1 }}
+                            className="bg-gray-800 p-6 rounded-lg shadow-lg hover:bg-gray-700 transition relative"
+                          >
+                            <div className="absolute inset-0 pointer-events-none bg-gradient-to-br from-transparent via-white/5 to-transparent blur opacity-0 hover:opacity-10 transition"></div>
+                            <h4 className="text-xl font-semibold text-white mb-2">
+                              {weapon.weaponName}
+                            </h4>
+                            <p className="text-gray-300">
+                              <span className="font-bold text-green-400">
+                                Kills:
+                              </span>{" "}
+                              {weapon.totalKills}
+                            </p>
+                            <p className="text-gray-300">
+                              <span className="font-bold text-yellow-400">
+                                Headshot %:
+                              </span>{" "}
+                              {weapon.headshotPercent.toFixed(1)}%
+                            </p>
+                            <p className="text-gray-300">
+                              <span className="font-bold text-blue-400">
+                                Avg. Damage:
+                              </span>{" "}
+                              {weapon.avgDamage.toFixed(1)}
+                            </p>
+                          </motion.div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+              </AnimatePresence>
               <div className="mt-8 flex flex-wrap justify-center gap-4">
                 <button
                   onClick={() => setShowHeatmap(!showHeatmap)}
@@ -819,23 +736,24 @@ export default function Home() {
                 >
                   {showHeatmap ? "Hide Heatmap" : "Show Heatmap"}
                 </button>
-                {isRadiantOrImmortal(
-                  getPlayerRank(selectedPlayer.name, selectedPlayer.tagline)
-                ) && (
-                  <button
-                    onClick={() =>
-                      handleToggleRankedStats(
-                        selectedPlayer.name,
-                        selectedPlayer.tagline
-                      )
-                    }
-                    className="px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-lg shadow-lg text-white font-semibold"
-                  >
-                    {showRankedStats
-                      ? "Hide Ranked Stats"
-                      : "View Ranked Stats"}
-                  </button>
-                )}
+                {selectedPlayer &&
+                  isRadiantOrImmortal(
+                    getPlayerRank(selectedPlayer.name, selectedPlayer.tagline)
+                  ) && (
+                    <button
+                      onClick={() =>
+                        handleToggleRankedStats(
+                          selectedPlayer.name,
+                          selectedPlayer.tagline
+                        )
+                      }
+                      className="px-4 py-2 bg-purple-600 hover:bg-purple-500 rounded-lg shadow-lg text-white font-semibold"
+                    >
+                      {showRankedStats
+                        ? "Hide Ranked Stats"
+                        : "View Ranked Stats"}
+                    </button>
+                  )}
               </div>
             </motion.div>
           </motion.div>

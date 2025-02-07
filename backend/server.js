@@ -3,17 +3,87 @@ require("dotenv").config();
 const express = require("express");
 const axios = require("axios");
 const cors = require("cors");
+const querystring = require("querystring");
 
 const app = express();
-
 const PORT = process.env.PORT || 5000;
+
+app.use(cors());
+app.use(express.json());
+
+// ----- RSO OAuth Endpoints ----- //
+
+// Start Riot OAuth (RSO) flow.
+app.get("/auth/riot", (req, res) => {
+  const clientId = process.env.RIOT_RSO_CLIENT_ID; // e.g. "123456" (your 6-digit App ID)
+  const redirectUri = process.env.RIOT_RSO_REDIRECT_URI; // e.g. "https://valorant-nextgen.vercel.app/auth/riot/callback"
+  // In production, generate a unique random state and store it in a session.
+  const state = "SOME_RANDOM_STATE";
+  const scope = "openid account";
+
+  const authUrl =
+    "https://auth.riotgames.com/authorize?" +
+    querystring.stringify({
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: "code",
+      scope: scope,
+      state: state,
+    });
+
+  res.redirect(authUrl);
+});
+
+// Callback endpoint – Riot will redirect here after sign‑in.
+app.get("/auth/riot/callback", async (req, res) => {
+  const { code, state } = req.query;
+  if (!code) {
+    return res.status(400).send("Error: Missing authorization code.");
+  }
+
+  try {
+    const tokenResponse = await axios.post(
+      "https://auth.riotgames.com/token",
+      querystring.stringify({
+        grant_type: "authorization_code",
+        code: code,
+        redirect_uri: process.env.RIOT_RSO_REDIRECT_URI,
+        client_id: process.env.RIOT_RSO_CLIENT_ID,
+        client_secret: process.env.RIOT_RSO_CLIENT_SECRET,
+      }),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+      }
+    );
+
+    const accessToken = tokenResponse.data.access_token;
+    const idToken = tokenResponse.data.id_token;
+    // (Optionally decode idToken with a JWT library to get user info.)
+    // TODO: Save user session here so you know the user has opted in.
+
+    // Redirect to a post‑login page (for example, a dashboard) while optionally passing the token.
+    res.redirect(`/dashboard?token=${accessToken}`);
+  } catch (error) {
+    console.error("Error during RSO token exchange:", error.message);
+    res.status(500).send("Authentication failed, please try again.");
+  }
+});
+
+// New Logout endpoint – redirect user to Riot’s logout URL with your post‑logout redirect.
+app.get("/auth/riot/logout", (req, res) => {
+  // If you are managing sessions, clear the session here.
+  const postLogoutRedirectUri = process.env.RIOT_RSO_POST_LOGOUT_URI; // e.g. "https://valorant-nextgen.vercel.app/"
+  res.redirect(
+    `https://auth.riotgames.com/logout?redirect_uri=${encodeURIComponent(
+      postLogoutRedirectUri
+    )}`
+  );
+});
 
 app.get("/", (req, res) => {
   res.send("Server is running!");
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
 });
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
@@ -522,7 +592,7 @@ app.get("/api/ranked-stats", (req, res) => {
   });
 });
 
-// riot example personal key usage for showcsae
+// Riot example personal key usage for showcase.
 app.get("/api/account", async (req, res) => {
   try {
     const { username, tagline } = req.query;
@@ -541,4 +611,8 @@ app.get("/api/account", async (req, res) => {
     console.error("Error in /api/account:", error.message);
     res.status(500).json({ error: "Could not fetch account" });
   }
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });

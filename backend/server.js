@@ -16,7 +16,7 @@ app.use(express.json());
 // Start Riot OAuth (RSO) flow.
 app.get("/auth/riot", (req, res) => {
   const clientId = process.env.RIOT_RSO_CLIENT_ID; // e.g. "123456" (your 6-digit App ID)
-  const redirectUrl = process.env.RIOT_RSO_REDIRECT_URL; // e.g. "https://valorant-nextgen.vercel.app/auth/riot/callback"
+  const redirectUri = process.env.RIOT_RSO_REDIRECT_URI; // e.g. "https://valorant-nextgen.vercel.app/auth/riot/callback"
   // In production, generate a unique random state and store it in a session.
   const state = "SOME_RANDOM_STATE";
   const scope = "openid account";
@@ -25,7 +25,7 @@ app.get("/auth/riot", (req, res) => {
     "https://auth.riotgames.com/authorize?" +
     querystring.stringify({
       client_id: clientId,
-      redirect_url: redirectUrl,
+      redirect_uri: redirectUri,
       response_type: "code",
       scope: scope,
       state: state,
@@ -47,7 +47,7 @@ app.get("/auth/riot/callback", async (req, res) => {
       querystring.stringify({
         grant_type: "authorization_code",
         code: code,
-        redirect_url: process.env.RIOT_RSO_REDIRECT_URL,
+        redirect_uri: process.env.RIOT_RSO_REDIRECT_URI,
         client_id: process.env.RIOT_RSO_CLIENT_ID,
         client_secret: process.env.RIOT_RSO_CLIENT_SECRET,
       }),
@@ -74,10 +74,10 @@ app.get("/auth/riot/callback", async (req, res) => {
 // New Logout endpoint – redirect user to Riot’s logout URL with your post‑logout redirect.
 app.get("/auth/riot/logout", (req, res) => {
   // If you are managing sessions, clear the session here.
-  const postLogoutRedirectUrl = process.env.RIOT_RSO_POST_LOGOUT_URL; // e.g. "https://valorant-nextgen.vercel.app/"
+  const postLogoutRedirectUri = process.env.RIOT_RSO_POST_LOGOUT_URI; // e.g. "https://valorant-nextgen.vercel.app/"
   res.redirect(
-    `https://auth.riotgames.com/logout?redirect_url=${encodeURLComponent(
-      postLogoutRedirectUrl
+    `https://auth.riotgames.com/logout?redirect_uri=${encodeURIComponent(
+      postLogoutRedirectUri
     )}`
   );
 });
@@ -600,9 +600,9 @@ app.get("/api/account", async (req, res) => {
       return res.status(400).json({ error: "username & tagline required" });
 
     const region = "americas";
-    const url = `https://${region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURLComponent(
+    const url = `https://${region}.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(
       username
-    )}/${encodeURLComponent(tagline)}`;
+    )}/${encodeURIComponent(tagline)}`;
     const response = await axios.get(url, {
       headers: { "X-Riot-Token": process.env.RIOT_API_KEY },
     });
